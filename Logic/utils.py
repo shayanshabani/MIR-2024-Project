@@ -1,25 +1,8 @@
 from typing import Dict, List
-from .core.preprocess import Preprocessor
 
 bigram_index = None
 movies_dataset = None
-preprocessor = ... # TODO
 
-def clean_query(query: str) -> str:
-    """
-    Cleans the given query using preprocessor
-
-    Parameters
-    ----------
-    query: str
-        The query text
-    
-    Returns
-    str
-        The cleaned and pre-processed form of the given query
-    """
-    # TODO
-    return query
 
 def correct_text(
     text: str, bigram_index: Dict[str, List[str]], similar_words_limit: int = 20
@@ -36,9 +19,7 @@ def correct_text(
     str
         The corrected form of the given text
     """
-    cleaned_text = clean_query(text)
-    # ...
-    return cleaned_text
+    return text
 
 
 def search(

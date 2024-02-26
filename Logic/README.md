@@ -5,21 +5,19 @@ This module contains files and classes responsible for doing the main tasks of t
 **Attention:**
 Inputs, outputs and logic of each function is explained in the comments of each function. So, **Please read** the comments and the docstrings of each class and method to understand the logic and the requirements of each part.
 
-## 1. [Crawler](./core/crawler.py)
+## 1. [Crawler](https://github.com/sharif-ml-lab/MIR-2024-Project/blob/Phase_1/Logic/core/crawler.py)
 
-In the beginning, we need to crawl our required data and create a dataset for our needs. For this sake, we implement a [crawler](./core/crawler.py). The structure and functions required for this part, are explained in the `crawler.py` file.
+In the beginning, we need to crawl our required data and create a dataset for our needs. For this sake, we implement a [crawler](https://github.com/sharif-ml-lab/MIR-2024-Project/blob/Phase_1/Logic/part%201/crawler.py). The structure and functions required for this part, are explained in the `crawler.py` file.
 
 For **Testing** the correctness of your implementation for crawler part, you can run `tests/test_crawler.py` and see if you crawled correctly. Feel free to change `json_file_path` variable to meet the path of your crawled data.
 
-## 2. [Near-duplicate page detecion](./core/LSH.py)
-We provided you `MinHashLSH` class. This class is responsible for doing near duplicate detection. As you know, this section consists of 3 sub-sections. First, you need to shingle documents. Then, after characteristic matrix, using mini-hashing technique, improve near duplicate detection. Finally, you need to use LSH so that you can find movies that are suspicious to being duplicate. **Note** that you are only allowed to use `perform_lsh` function outside of your class and other methods only inside the class. **Another Note** is that in your crawled data, you have one section named `first_page_summary` and another section named `summaries`. The first one is a String and the second one is a list of Strings and note that you should work with the second one and by combining those Strings make a summary of the movie and do LSH on the set of summaries. The final output of this class should be a dictionary where the keys are the hashes of the buckets, and the corresponding values should be lists of document IDs, representing the indices of those summaries in the main list of all summaries. We have provided you with a file containing some fake movies in JSON format. Specifically for the Locality-Sensitive Hashing (LSH) part, please integrate this additional data into your main dataset and proceed with LSH. It's important to note that the file includes 20 movies, and each pair of consecutive movies is considered a near duplicate. For instance, the first and second movies, the third and fourth movies, and so on, are near duplicates. Verify your code to account for this characteristic. However, it is crucial to emphasize that after this stage, you must remove all fake movies from your corpus and refrain from utilizing them in further steps. There is a method in the class called `jaccard_similarity_test`. You can assess your results using this method by passing the bucket dictionary and the documents containing all the summaries, where the indexes correspond to the summaries in the buckets.
+## 2. [Near-duplicate page detecion](https://github.com/sharif-ml-lab/MIR-2024-Project/blob/Phase_1/Logic/core/LSH.py)
+We provided you `MinHashLSH` class. This class is responsible for doing near duplicate detection. As you know, this section consists of 3 sub-sections. First, you need to shingle documents. Then, after characteristic matrix, using mini-hashing technique, improve near duplicate detection. Finally, you need to use LSH so that you can find movies that are suspicious to being duplicate. **Note** that you are only allowed to use `perform_lsh` function outside of your class and other methods only inside the class. **Another Note** is that in your crawled data, you have one section named `first_page_summary` and another section named `summaries`. The first one is a String and the second one is a list of Strings and note that you should work with with the second one and by combining those Strings make a summary of the movie and do LSH on the set of summaries.
 
-## 3. [Preprocess](./core/preprocess.py)
+## 3. [Preprocess](https://github.com/sharif-ml-lab/MIR-2024-Project/blob/Phase_1/Logic/core/preprocess.py)
 This class is responsible for doing preprocessings required on the input data. The input the crawled data and the output is the data without extra info.
 
-Using prebuilt libraries for stopwords is an option, but it can be slow to process large amounts of text. For faster performance, we have prepared a `stopword.txt` file containing common stopwords that you can use instead. The stopwords file allows preprocessing to be completed more efficiently by removing common, non-informative words from the text before further analysis.
-
-## 4. [Indexing](./core/index.py)
+## 4. [Indexing](https://github.com/sharif-ml-lab/MIR-2024-Project/blob/Phase_1/Logic/core/index.py)
 This class is responsible for building index. Its input is preprocessed data and the output is indexes required for searching. This section will be used in next phases and the functions will be used for information retrieval.
 
 - `check_add_remove_is_correct` method is used to test if your add and remove methods are correct or not. You should run this method and see if your add and remove methods are correct.
@@ -31,7 +29,3 @@ You should run this method, **for each of the 4 indexing methods and for 2 diffe
 Report the results to us.
 
 - **Note** that one or many of the methods (or signatures of methods) in this class may need to be changed based on your implementations. Feel free to do so!
-
-## 5. [Utils](./utils.py)
-
-This file contains functions that is needed by UI to do some of the important functionalities. For now, you should complete the `clean_text` function that is used by UI to do the pre-processing operations that you implemented in `Preprocessor` class, on the input query by user.  You can **test** your implementation by running the UI, and giving different inputs and see that how is it being corrected (or actually, being cleaned! so it can be used better as we proceed in the project).
