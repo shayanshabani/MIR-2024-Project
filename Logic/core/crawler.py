@@ -11,7 +11,7 @@ class IMDbCrawler:
     put your own user agent in the headers
     """
     headers = {
-        'User-Agent': None
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
     }
     top_250_URL = 'https://www.imdb.com/chart/top/'
 
@@ -25,12 +25,12 @@ class IMDbCrawler:
             The number of pages to crawl
         """
         # TODO
-        self.crawling_threshold = None
-        self.not_crawled = None
-        self.crawled = None
-        self.added_ids = None
-        self.add_list_lock = None
-        self.add_queue_lock = None
+        self.crawling_threshold = crawling_threshold
+        self.not_crawled = set()
+        self.crawled = set()
+        self.added_ids = set()
+        self.add_list_lock = Lock()
+        self.add_queue_lock = Lock()
 
     def get_id_from_URL(self, URL):
         """
@@ -47,14 +47,21 @@ class IMDbCrawler:
             The id of the site
         """
         # TODO
-        return URL.split('/')[4]
+        URL_array = URL.split('/')
+        return URL_array[URL_array.index('title') + 1]
 
     def write_to_file_as_json(self):
         """
         Save the crawled files into json
         """
         # TODO
-        pass
+        json_object = json.dumps(self.crawled, indent=4)
+        with open('IMDB_crawled.json', 'w') as f:
+            f.write(json_object)
+
+        json_object = json.dumps(self.not_crawled, indent=4)
+        with open('IMDB_not_crawled.json', 'w') as f:
+            f.write(json_object)
 
     def read_from_file_as_json(self):
         """
@@ -62,10 +69,10 @@ class IMDbCrawler:
         """
         # TODO
         with open('IMDB_crawled.json', 'r') as f:
-            self.crawled = None
+            self.crawled = json.load(f)
 
         with open('IMDB_not_crawled.json', 'w') as f:
-            self.not_crawled = None
+            self.not_crawled = json.load(f)
 
         self.added_ids = None
 
@@ -83,14 +90,22 @@ class IMDbCrawler:
             The response of the get request
         """
         # TODO
-        return None
+        response = get(URL, headers=self.headers)
+        return response
 
     def extract_top_250(self):
         """
         Extract the top 250 movies from the top 250 page and use them as seed for the crawler to start crawling.
         """
         # TODO update self.not_crawled and self.added_ids
-
+        response = self.crawl(self.top_250_URL)
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.text, 'html.parser')
+            movie_links = soup.find_all('a', class_='ipc-title-link-wrapper')[:250]
+            for movie_link in movie_links:
+                movie_id = self.get_id_from_URL(movie_link['href'])
+                self.not_crawled.add(movie_id)
+                self.added_ids.add(movie_id)
 
     def get_imdb_instance(self):
         return {
@@ -128,19 +143,19 @@ class IMDbCrawler:
         """
 
         # help variables
-        WHILE_LOOP_CONSTRAINTS = None
-        NEW_URL = None
-        THERE_IS_NOTHING_TO_CRAWL = None
+        # WHILE_LOOP_CONSTRAINTS = (len(self.crawled) < self.crawling_threshold) and (len(self.not_crawled) > 0)
+        # NEW_URL = f'https://www.imdb.com/title/{self.not_crawled.pop()}/'
+        # THERE_IS_NOTHING_TO_CRAWL = len(self.not_crawled) > 0
 
         self.extract_top_250()
         futures = []
         crawled_counter = 0
 
         with ThreadPoolExecutor(max_workers=20) as executor:
-            while WHILE_LOOP_CONSTRAINTS:
-                URL = NEW_URL
+            while (len(self.crawled) < self.crawling_threshold) and (len(self.not_crawled) > 0):
+                URL = f'https://www.imdb.com/title/{self.not_crawled.pop()}/'
                 futures.append(executor.submit(self.crawl_page_info, URL))
-                if THERE_IS_NOTHING_TO_CRAWL:
+                if (len(self.not_crawled) == 0) or (len(futures) >= self.crawling_threshold):
                     wait(futures)
                     futures = []
 
@@ -156,7 +171,14 @@ class IMDbCrawler:
         """
         print("new iteration")
         # TODO
-        pass
+        response = self.crawl(URL)
+        if response.status_code == 200:
+            #soup = BeautifulSoup(response.text, 'html.parser')
+            movie_info = self.get_imdb_instance()
+            self.extract_movie_info(response, movie_info, URL)
+            with self.add_list_lock:
+                self.crawled.add(movie_info['id'])
+
 
     def extract_movie_info(self, res, movie, URL):
         """
@@ -172,23 +194,25 @@ class IMDbCrawler:
             The URL of the site
         """
         # TODO
-        movie['title'] = None
-        movie['first_page_summary'] = None
-        movie['release_year'] = None
-        movie['mpaa'] = None
-        movie['budget'] = None
-        movie['gross_worldwide'] = None
-        movie['directors'] = None
-        movie['writers'] = None
-        movie['stars'] = None
-        movie['related_links'] = None
-        movie['genres'] = None
-        movie['languages'] = None
-        movie['countries_of_origin'] = None
-        movie['rating'] = None
-        movie['summaries'] = None
-        movie['synopsis'] = None
-        movie['reviews'] = None
+        soup = BeautifulSoup(res.text, 'html.parser')
+        movie['id'] = self.get_id_from_URL(URL)
+        movie['title'] = self.get_title(soup)
+        movie['first_page_summary'] = self.get_first_page_summary(soup)
+        movie['release_year'] = self.get_release_year(soup)
+        movie['mpaa'] = self.get_mpaa(soup)
+        movie['budget'] = self.get_budget(soup)
+        movie['gross_worldwide'] = self.get_gross_worldwide(soup)
+        movie['directors'] = self.get_director(soup)
+        movie['writers'] = self.get_writers(soup)
+        movie['stars'] = self.get_stars(soup)
+        movie['related_links'] = self.get_related_links(soup)
+        movie['genres'] = self.get_genres(soup)
+        movie['languages'] = self.get_languages(soup)
+        movie['countries_of_origin'] = self.get_countries_of_origin(soup)
+        movie['rating'] = self.get_rating(soup)
+        movie['summaries'] = self.get_summary(soup)
+        movie['synopsis'] = self.get_synopsis(soup)
+        movie['reviews'] = self.get_reviews_with_scores(soup)
 
     def get_summary_link(url):
         """
@@ -208,7 +232,7 @@ class IMDbCrawler:
         """
         try:
             # TODO
-            pass
+            return f'{url}plotsummary'
         except:
             print("failed to get summary link")
 
@@ -221,7 +245,7 @@ class IMDbCrawler:
         """
         try:
             # TODO
-            pass
+            return f'{url}reviews'
         except:
             print("failed to get review link")
 
@@ -241,7 +265,8 @@ class IMDbCrawler:
         """
         try:
             # TODO
-            pass
+            title = soup.find_all('span', class_='hero__primary-text')[0].text
+            return title
         except:
             print("failed to get title")
 
@@ -260,7 +285,8 @@ class IMDbCrawler:
         """
         try:
             # TODO
-            pass
+            first_page_summary = soup.find_all('span', class_='sc-466bb6c-0 hlbAws')[0].text
+            return first_page_summary
         except:
             print("failed to get first page summary")
 
@@ -279,7 +305,10 @@ class IMDbCrawler:
         """
         try:
             # TODO
-            pass
+            casts = soup.find_all('ul', class_='ipc-inline-list ipc-inline-list--show-dividers ipc-inline-list--inline ipc-metadata-list-item__list-content baseAlt')
+            directors_soup = BeautifulSoup(str(casts[0]), 'html.parser')
+            directors = [a.text for a in directors_soup.find_all('a', class_='ipc-metadata-list-item__list-content-item ipc-metadata-list-item__list-content-item--link')]
+            return directors
         except:
             print("failed to get director")
 
@@ -298,7 +327,10 @@ class IMDbCrawler:
         """
         try:
             # TODO
-            pass
+            casts = soup.find_all('ul', class_='ipc-inline-list ipc-inline-list--show-dividers ipc-inline-list--inline ipc-metadata-list-item__list-content baseAlt')
+            stars_soup = BeautifulSoup(str(casts[2]), 'html.parser')
+            stars = [a.text for a in stars_soup.find_all('a', class_='ipc-metadata-list-item__list-content-item ipc-metadata-list-item__list-content-item--link')]
+            return stars
         except:
             print("failed to get stars")
 
@@ -317,7 +349,10 @@ class IMDbCrawler:
         """
         try:
             # TODO
-            pass
+            casts = soup.find_all('ul', class_='ipc-inline-list ipc-inline-list--show-dividers ipc-inline-list--inline ipc-metadata-list-item__list-content baseAlt')
+            writers_soup = BeautifulSoup(str(casts[0]), 'html.parser')
+            writers = [a.text for a in writers_soup.find_all('a', class_='ipc-metadata-list-item__list-content-item ipc-metadata-list-item__list-content-item--link')]
+            return writers
         except:
             print("failed to get writers")
 
@@ -553,11 +588,20 @@ class IMDbCrawler:
 
 
 def main():
-    imdb_crawler = IMDbCrawler(crawling_threshold=600)
+    # imdb_crawler = IMDbCrawler(crawling_threshold=600)
     # imdb_crawler.read_from_file_as_json()
-    imdb_crawler.start_crawling()
-    imdb_crawler.write_to_file_as_json()
+    # imdb_crawler.start_crawling()
+    # imdb_crawler.write_to_file_as_json()
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
+    }
+    response = get('https://www.imdb.com/title/tt0111161/', headers=headers)
+    if response.status_code == 200:
+        soup = BeautifulSoup(response.text, 'html.parser')
+        casts = soup.find_all('ul', class_='ipc-inline-list ipc-inline-list--show-dividers ipc-inline-list--inline ipc-metadata-list-item__list-content baseAlt')
 
-
+        writers_soup = BeautifulSoup(str(casts[1]), 'html.parser')
+        writers_names = [a.text for a in writers_soup.find_all('a', class_='ipc-metadata-list-item__list-content-item ipc-metadata-list-item__list-content-item--link')]
+        print(writers_names)
 if __name__ == '__main__':
     main()
