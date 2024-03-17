@@ -199,7 +199,8 @@ class IMDbCrawler:
         movie['title'] = self.get_title(soup)
         movie['first_page_summary'] = self.get_first_page_summary(soup)
         movie['release_year'] = self.get_release_year(soup)
-        movie['mpaa'] = self.get_mpaa(soup)
+        mpaa_soup = BeautifulSoup(self.crawl(self.get_parental_link(URL)).text, 'html.parser')
+        movie['mpaa'] = self.get_mpaa(mpaa_soup)
         movie['budget'] = self.get_budget(soup)
         movie['gross_worldwide'] = self.get_gross_worldwide(soup)
         movie['directors'] = self.get_director(soup)
@@ -210,9 +211,11 @@ class IMDbCrawler:
         movie['languages'] = self.get_languages(soup)
         movie['countries_of_origin'] = self.get_countries_of_origin(soup)
         movie['rating'] = self.get_rating(soup)
-        movie['summaries'] = self.get_summary(soup)
-        movie['synopsis'] = self.get_synopsis(soup)
-        movie['reviews'] = self.get_reviews_with_scores(soup)
+        summary_soup = BeautifulSoup(self.crawl(self.get_summary_link(URL)).text, 'html.parser')
+        movie['summaries'] = self.get_summary(summary_soup)
+        movie['synopsis'] = self.get_synopsis(summary_soup)
+        review_soup = BeautifulSoup(self.crawl(self.get_review_link(URL)).text, 'html.parser')
+        movie['reviews'] = self.get_reviews_with_scores(review_soup)
 
     def get_summary_link(self, url):
         """
@@ -248,6 +251,19 @@ class IMDbCrawler:
             return f'{url}reviews'
         except:
             print("failed to get review link")
+
+    def get_parental_link(self, url):
+        """
+        Get the link to the parental page of the movie
+        Example:
+        https://www.imdb.com/title/tt0111161/ is the page
+        https://www.imdb.com/title/tt0111161/parentalguide is the review page
+        """
+        try:
+            # TODO
+            return f'{url}parentalguide'
+        except:
+            print("failed to get parental guide link")
 
     def get_title(self, soup):
         """
@@ -471,7 +487,13 @@ class IMDbCrawler:
         """
         try:
             # TODO
-            pass
+            genres_list = []
+            genre_object = soup.find_all('div', 'sc-491663c0-10 rbXFE')
+            genre_soup = BeautifulSoup(str(genre_object), 'html.parser')
+            genres = genre_soup.find_all('a', 'ipc-chip ipc-chip--on-baseAlt')
+            for genre in genres:
+                genres_list.append(str(genre.text))
+            return genres_list
         except:
             print("Failed to get generes")
 
@@ -490,7 +512,8 @@ class IMDbCrawler:
         """
         try:
             # TODO
-            pass
+            rate = str(soup.find_all('span', class_='sc-bde20123-1 cMEQkK')[0].text) + '/10'
+            return rate
         except:
             print("failed to get rating")
 
@@ -509,7 +532,8 @@ class IMDbCrawler:
         """
         try:
             # TODO
-            pass
+            mpaa = soup.find_all('tr', id='mpaa-rating')
+            return str(mpaa[0].text)[6:-1]
         except:
             print("failed to get mpaa")
 
@@ -528,7 +552,10 @@ class IMDbCrawler:
         """
         try:
             # TODO
-            pass
+            year_obj = soup.find_all('ul', class_='ipc-inline-list ipc-inline-list--show-dividers sc-d8941411-2 cdJsTz baseAlt')
+            year_soup = BeautifulSoup(str(year_obj), 'html.parser')
+            year = str(year_soup.find_all('li', 'ipc-inline-list__item')[0].text)
+            return year
         except:
             print("failed to get release year")
 
@@ -547,7 +574,13 @@ class IMDbCrawler:
         """
         try:
             # TODO
-            pass
+            languages_list = []
+            languages_object = soup.find('li', {'role': 'presentation', 'class': 'ipc-metadata-list__item', 'data-testid': 'title-details-languages'})
+            languages_soup = BeautifulSoup(str(languages_object), 'html.parser')
+            languages = languages_soup.find_all('a', 'ipc-metadata-list-item__list-content-item ipc-metadata-list-item__list-content-item--link')
+            for language in languages:
+                languages_list.append(str(language.text))
+            return languages_list
         except:
             print("failed to get languages")
             return None
@@ -567,7 +600,13 @@ class IMDbCrawler:
         """
         try:
             # TODO
-            pass
+            countries_list = []
+            countries_object = soup.find('li', {'role': 'presentation', 'class': 'ipc-metadata-list__item', 'data-testid': 'title-details-origin'})
+            countries_soup = BeautifulSoup(str(countries_object), 'html.parser')
+            countries = countries_soup.find_all('a', 'ipc-metadata-list-item__list-content-item ipc-metadata-list-item__list-content-item--link')
+            for country in countries:
+                countries_list.append(str(country.text))
+            return countries_list
         except:
             print("failed to get countries of origin")
 
@@ -586,7 +625,10 @@ class IMDbCrawler:
         """
         try:
             # TODO
-            pass
+            budget_object = soup.find('li', {'role': 'presentation', 'class': 'ipc-metadata-list__item sc-1bec5ca1-2 bGsDqT', 'data-testid': 'title-boxoffice-budget'})
+            budget_soup = BeautifulSoup(str(budget_object), 'html.parser')
+            budget = str(budget_soup.find('span', 'ipc-metadata-list-item__list-content-item').text)
+            return budget
         except:
             print("failed to get budget")
 
@@ -605,37 +647,30 @@ class IMDbCrawler:
         """
         try:
             # TODO
-            pass
+            gross_object = soup.find('li', {'role': 'presentation', 'class': 'ipc-metadata-list__item sc-1bec5ca1-2 bGsDqT', 'data-testid': 'title-boxoffice-cumulativeworldwidegross'})
+            gross_soup = BeautifulSoup(str(gross_object), 'html.parser')
+            gross = str(gross_soup.find('span', 'ipc-metadata-list-item__list-content-item').text)
+            return gross
         except:
             print("failed to get gross worldwide")
 
 
 def main():
-    # imdb_crawler = IMDbCrawler(crawling_threshold=600)
+    print('hellowww')
+    imdb_crawler = IMDbCrawler(crawling_threshold=1000)
     # imdb_crawler.read_from_file_as_json()
-    # imdb_crawler.start_crawling()
-    # imdb_crawler.write_to_file_as_json()
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
-    }
-    response = get('https://www.imdb.com/title/tt0111161/reviews', headers=headers)
-    if response.status_code == 200:
-        soup = BeautifulSoup(response.text, 'html.parser')
-        # review_object = soup.find_all('div', 'lister-item-content')
-        # for obj in review_object:
-        #     review_soup = BeautifulSoup(str(obj), 'html.parser')
-        #     title = str(review_soup.find_all('a', 'title')[0].text[1:])
-        #     rating_object = review_soup.find_all('div', 'ipl-ratings-bar')
-        #     rating = []
-        #     if len(rating_object) != 0:
-        #         rating = str(rating_object[0].text.replace('\n', ''))
-        #
-        #     review = review_soup.find_all('div', 'content')[0].text.split('\n')[1]
-        #     print(rating)
-        #     print(f'{title}\n{review}')
-        # for review_object in reviews_object:
-        #     print(review_object.text.split('\n')[1])
-        #     print('**************************')
+    imdb_crawler.start_crawling()
+    imdb_crawler.write_to_file_as_json()
+    # headers = {
+    #     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
+    # }
+    # response = get('https://www.imdb.com/title/tt0111161/', headers=headers)
+    # if response.status_code == 200:
+    #     soup = BeautifulSoup(response.text, 'html.parser')
+    #     gross_object = soup.find('li', {'role': 'presentation', 'class': 'ipc-metadata-list__item sc-1bec5ca1-2 bGsDqT', 'data-testid': 'title-boxoffice-cumulativeworldwidegross'})
+    #     gross_soup = BeautifulSoup(str(gross_object), 'html.parser')
+    #     gross = gross_soup.find('span', 'ipc-metadata-list-item__list-content-item')
+    #     print(gross.text)
 
 if __name__ == '__main__':
     main()
