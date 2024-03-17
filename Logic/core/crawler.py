@@ -214,7 +214,7 @@ class IMDbCrawler:
         movie['synopsis'] = self.get_synopsis(soup)
         movie['reviews'] = self.get_reviews_with_scores(soup)
 
-    def get_summary_link(url):
+    def get_summary_link(self, url):
         """
         Get the link to the summary page of the movie
         Example:
@@ -236,7 +236,7 @@ class IMDbCrawler:
         except:
             print("failed to get summary link")
 
-    def get_review_link(url):
+    def get_review_link(self, url):
         """
         Get the link to the review page of the movie
         Example:
@@ -249,7 +249,7 @@ class IMDbCrawler:
         except:
             print("failed to get review link")
 
-    def get_title(soup):
+    def get_title(self, soup):
         """
         Get the title of the movie from the soup
 
@@ -265,12 +265,12 @@ class IMDbCrawler:
         """
         try:
             # TODO
-            title = soup.find_all('span', class_='hero__primary-text')[0].text
+            title = str(soup.find_all('span', class_='hero__primary-text')[0].text)
             return title
         except:
             print("failed to get title")
 
-    def get_first_page_summary(soup):
+    def get_first_page_summary(self, soup):
         """
         Get the first page summary of the movie from the soup
 
@@ -285,12 +285,12 @@ class IMDbCrawler:
         """
         try:
             # TODO
-            first_page_summary = soup.find_all('span', class_='sc-466bb6c-0 hlbAws')[0].text
+            first_page_summary = str(soup.find_all('span', class_='sc-466bb6c-0 hlbAws')[0].text)
             return first_page_summary
         except:
             print("failed to get first page summary")
 
-    def get_director(soup):
+    def get_director(self, soup):
         """
         Get the directors of the movie from the soup
 
@@ -307,12 +307,12 @@ class IMDbCrawler:
             # TODO
             casts = soup.find_all('ul', class_='ipc-inline-list ipc-inline-list--show-dividers ipc-inline-list--inline ipc-metadata-list-item__list-content baseAlt')
             directors_soup = BeautifulSoup(str(casts[0]), 'html.parser')
-            directors = [a.text for a in directors_soup.find_all('a', class_='ipc-metadata-list-item__list-content-item ipc-metadata-list-item__list-content-item--link')]
+            directors = [str(a.text) for a in directors_soup.find_all('a', class_='ipc-metadata-list-item__list-content-item ipc-metadata-list-item__list-content-item--link')]
             return directors
         except:
             print("failed to get director")
 
-    def get_stars(soup):
+    def get_stars(self, soup):
         """
         Get the stars of the movie from the soup
 
@@ -329,12 +329,12 @@ class IMDbCrawler:
             # TODO
             casts = soup.find_all('ul', class_='ipc-inline-list ipc-inline-list--show-dividers ipc-inline-list--inline ipc-metadata-list-item__list-content baseAlt')
             stars_soup = BeautifulSoup(str(casts[2]), 'html.parser')
-            stars = [a.text for a in stars_soup.find_all('a', class_='ipc-metadata-list-item__list-content-item ipc-metadata-list-item__list-content-item--link')]
+            stars = [str(a.text) for a in stars_soup.find_all('a', class_='ipc-metadata-list-item__list-content-item ipc-metadata-list-item__list-content-item--link')]
             return stars
         except:
             print("failed to get stars")
 
-    def get_writers(soup):
+    def get_writers(self, soup):
         """
         Get the writers of the movie from the soup
 
@@ -351,12 +351,12 @@ class IMDbCrawler:
             # TODO
             casts = soup.find_all('ul', class_='ipc-inline-list ipc-inline-list--show-dividers ipc-inline-list--inline ipc-metadata-list-item__list-content baseAlt')
             writers_soup = BeautifulSoup(str(casts[0]), 'html.parser')
-            writers = [a.text for a in writers_soup.find_all('a', class_='ipc-metadata-list-item__list-content-item ipc-metadata-list-item__list-content-item--link')]
+            writers = [str(a.text) for a in writers_soup.find_all('a', class_='ipc-metadata-list-item__list-content-item ipc-metadata-list-item__list-content-item--link')]
             return writers
         except:
             print("failed to get writers")
 
-    def get_related_links(soup):
+    def get_related_links(self, soup):
         """
         Get the related links of the movie from the More like this section of the page from the soup
 
@@ -371,11 +371,15 @@ class IMDbCrawler:
         """
         try:
             # TODO
-            pass
+            related_links = []
+            related_objects = soup.find_all('a', class_='ipc-poster-card__title ipc-poster-card__title--clamp-2 ipc-poster-card__title--clickable')
+            for related_object in related_objects:
+                related_links.append(f'https://www.imdb.com/title/{self.get_id_from_URL(str(related_object["href"]))}')
+            return related_links
         except:
             print("failed to get related links")
 
-    def get_summary(soup):
+    def get_summary(self, soup):
         """
         Get the summary of the movie from the soup
 
@@ -390,11 +394,14 @@ class IMDbCrawler:
         """
         try:
             # TODO
-            pass
+            summaries_object = soup.find_all('ul', class_='ipc-metadata-list ipc-metadata-list--dividers-after sc-d1777989-0 FVBoi ipc-metadata-list--base')
+            summaries_soup = BeautifulSoup(str(summaries_object), 'html.parser')
+            summaries = [str(div.text) for div in summaries_soup.find_all('div', class_='ipc-html-content-inner-div')]
+            return summaries
         except:
             print("failed to get summary")
 
-    def get_synopsis(soup):
+    def get_synopsis(self, soup):
         """
         Get the synopsis of the movie from the soup
 
@@ -409,11 +416,14 @@ class IMDbCrawler:
         """
         try:
             # TODO
-            pass
+            synopsis = []
+            synopsis_object = soup.find_all('div', class_='ipc-html-content ipc-html-content--base sc-8c0e9a24-0 iouSJu')
+            synopsis.append(str(synopsis_object[-1].text))
+            return synopsis
         except:
             print("failed to get synopsis")
 
-    def get_reviews_with_scores(soup):
+    def get_reviews_with_scores(self, soup):
         """
         Get the reviews of the movie from the soup
         reviews structure: [[review,score]]
@@ -429,11 +439,24 @@ class IMDbCrawler:
         """
         try:
             # TODO
-            pass
+            reviews_with_scores = []
+            review_object = soup.find_all('div', 'lister-item-content')
+            for obj in review_object:
+                review_with_score = []
+                review_soup = BeautifulSoup(str(obj), 'html.parser')
+                title = str(review_soup.find_all('a', 'title')[0].text[1:])
+                rating_object = review_soup.find_all('div', 'ipl-ratings-bar')
+                rating = ''
+                if len(rating_object) != 0:
+                    rating = str(rating_object[0].text.replace('\n', ''))
+                review = title + '\n' + str(review_soup.find_all('div', 'content')[0].text.split('\n')[1])
+                review_with_score.append(review)
+                review_with_score.append(rating)
+                reviews_with_scores.append(review_with_score)
         except:
             print("failed to get reviews")
 
-    def get_genres(soup):
+    def get_genres(self, soup):
         """
         Get the genres of the movie from the soup
 
@@ -452,7 +475,7 @@ class IMDbCrawler:
         except:
             print("Failed to get generes")
 
-    def get_rating(soup):
+    def get_rating(self, soup):
         """
         Get the rating of the movie from the soup
 
@@ -471,7 +494,7 @@ class IMDbCrawler:
         except:
             print("failed to get rating")
 
-    def get_mpaa(soup):
+    def get_mpaa(self, soup):
         """
         Get the MPAA of the movie from the soup
 
@@ -490,7 +513,7 @@ class IMDbCrawler:
         except:
             print("failed to get mpaa")
 
-    def get_release_year(soup):
+    def get_release_year(self, soup):
         """
         Get the release year of the movie from the soup
 
@@ -509,7 +532,7 @@ class IMDbCrawler:
         except:
             print("failed to get release year")
 
-    def get_languages(soup):
+    def get_languages(self, soup):
         """
         Get the languages of the movie from the soup
 
@@ -529,7 +552,7 @@ class IMDbCrawler:
             print("failed to get languages")
             return None
 
-    def get_countries_of_origin(soup):
+    def get_countries_of_origin(self, soup):
         """
         Get the countries of origin of the movie from the soup
 
@@ -548,7 +571,7 @@ class IMDbCrawler:
         except:
             print("failed to get countries of origin")
 
-    def get_budget(soup):
+    def get_budget(self, soup):
         """
         Get the budget of the movie from box office section of the soup
 
@@ -567,7 +590,7 @@ class IMDbCrawler:
         except:
             print("failed to get budget")
 
-    def get_gross_worldwide(soup):
+    def get_gross_worldwide(self, soup):
         """
         Get the gross worldwide of the movie from box office section of the soup
 
@@ -595,13 +618,24 @@ def main():
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
     }
-    response = get('https://www.imdb.com/title/tt0111161/', headers=headers)
+    response = get('https://www.imdb.com/title/tt0111161/reviews', headers=headers)
     if response.status_code == 200:
         soup = BeautifulSoup(response.text, 'html.parser')
-        casts = soup.find_all('ul', class_='ipc-inline-list ipc-inline-list--show-dividers ipc-inline-list--inline ipc-metadata-list-item__list-content baseAlt')
+        # review_object = soup.find_all('div', 'lister-item-content')
+        # for obj in review_object:
+        #     review_soup = BeautifulSoup(str(obj), 'html.parser')
+        #     title = str(review_soup.find_all('a', 'title')[0].text[1:])
+        #     rating_object = review_soup.find_all('div', 'ipl-ratings-bar')
+        #     rating = []
+        #     if len(rating_object) != 0:
+        #         rating = str(rating_object[0].text.replace('\n', ''))
+        #
+        #     review = review_soup.find_all('div', 'content')[0].text.split('\n')[1]
+        #     print(rating)
+        #     print(f'{title}\n{review}')
+        # for review_object in reviews_object:
+        #     print(review_object.text.split('\n')[1])
+        #     print('**************************')
 
-        writers_soup = BeautifulSoup(str(casts[1]), 'html.parser')
-        writers_names = [a.text for a in writers_soup.find_all('a', class_='ipc-metadata-list-item__list-content-item ipc-metadata-list-item__list-content-item--link')]
-        print(writers_names)
 if __name__ == '__main__':
     main()
