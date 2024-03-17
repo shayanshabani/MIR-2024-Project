@@ -15,7 +15,7 @@ class IMDbCrawler:
     }
     top_250_URL = 'https://www.imdb.com/chart/top/'
 
-    def __init__(self, crawling_threshold=20):
+    def __init__(self, crawling_threshold=1050):
         """
         Initialize the crawler
 
@@ -27,8 +27,9 @@ class IMDbCrawler:
         # TODO
         self.count = 1
         self.crawling_threshold = crawling_threshold
-        self.not_crawled = set()
-        self.crawled = set()
+        self.not_crawled = []
+        self.crawled = []
+        self.crawled_ids = set()
         self.added_ids = set()
         self.add_list_lock = Lock()
         self.add_queue_lock = Lock()
@@ -70,15 +71,15 @@ class IMDbCrawler:
         """
         # TODO
         with open('../IMDB_crawled.json', 'r') as f:
-            self.crawled = json.load(f)
-
-        with open('../IMDB_not_crawled.json', 'w') as f:
-            self.not_crawled = json.load(f)
-
+            json_data = f.read()
+        self.crawled = json.loads(json_data)
+        with open('../IMDB_not_crawled.json', 'r') as f:
+            json_data = f.read()
+        self.not_crawled = json.loads(json_data)
         for crawled in self.crawled:
             self.added_ids.add(crawled['id'])
         for not_crawled in self.not_crawled:
-            self.added_ids.add(not_crawled)
+            self.added_ids.add(self.get_id_from_URL(not_crawled))
 
     def crawl(self, URL):
         """
@@ -111,7 +112,7 @@ class IMDbCrawler:
             for movie_link in movie_links:
                 # print(movie_link)
                 movie_id = self.get_id_from_URL(str(movie_link['href']))
-                self.not_crawled.add(f'https://www.imdb.com/title/{movie_id}/')
+                self.not_crawled.append(f'https://www.imdb.com/title/{movie_id}/')
                 self.added_ids.add(movie_id)
 
     def get_imdb_instance(self):
@@ -158,12 +159,15 @@ class IMDbCrawler:
         futures = []
         crawled_counter = 0
 
-        with ThreadPoolExecutor(max_workers=5) as executor:
+        with ThreadPoolExecutor(max_workers=20) as executor:
             while (len(self.crawled) < self.crawling_threshold) and (len(self.not_crawled) > 0) and crawled_counter < self.crawling_threshold:
                 URL = self.not_crawled.pop()
-                if URL not in self.crawled:
+                movie_id = self.get_id_from_URL(URL)
+                if movie_id not in self.crawled_ids:
+                    print('lets go crawl it')
                     futures.append(executor.submit(self.crawl_page_info, URL))
                     crawled_counter += 1
+
                 if (len(self.not_crawled) == 0) or (len(futures) >= self.crawling_threshold):
                     wait(futures)
                     futures = []
@@ -184,19 +188,17 @@ class IMDbCrawler:
         if response.status_code == 200:
             #soup = BeautifulSoup(response.text, 'html.parser')
             movie_info = self.get_imdb_instance()
-            self.extract_movie_info(response, movie_info, URL)
-
-            # self.crawled_movies.add(movie_info)
-            # print(f'{self.count}: {URL}')
-            # print(movie_info)
-            # self.count += 1
-            # print('**************************************')
+            movie_info = self.extract_movie_info(response, movie_info, URL)
 
             with self.add_list_lock:
-                self.crawled.add(URL)
+                print('first')
+                self.crawled_ids.add(movie_info['id'])
+                print('second')
+                self.crawled.append(movie_info)
+                print('third')
                 for link in movie_info['related_links']:
                     if self.get_id_from_URL(link) not in self.added_ids:
-                        self.not_crawled.add(link)
+                        self.not_crawled.append(link)
                         self.added_ids.add(self.get_id_from_URL(link))
 
 
@@ -236,6 +238,7 @@ class IMDbCrawler:
         movie['synopsis'] = self.get_synopsis(summary_soup)
         review_soup = BeautifulSoup(self.crawl(self.get_review_link(URL)).text, 'html.parser')
         movie['reviews'] = self.get_reviews_with_scores(review_soup)
+        return movie
 
     def get_summary_link(self, url):
         """
@@ -330,6 +333,27 @@ class IMDbCrawler:
             print("failed to get first page summary")
         return first_page_summary
 
+    def preprocessing_casts(self, soup):
+        i = 10
+        j = 10
+        k = 10
+        casts_object = soup.find('div', class_='sc-410d722f-1 lgrCIy')
+        casts_soup = BeautifulSoup(str(casts_object), 'html.parser')
+        casts = casts_soup.find_all('li', class_='ipc-metadata-list__item')
+        counter = 0
+        for cast in casts:
+            if 'Director' in cast.text:
+                if 'Director' in cast.text[:8]:
+                    i = counter
+            if 'Writers' in cast.text:
+                if 'Writers' in cast.text[:7]:
+                    j = counter
+            if 'Stars' in cast.text:
+                if 'Stars' in cast.text[:5]:
+                    k = counter
+            counter += 1
+        return i, j, k
+
     def get_director(self, soup):
         """
         Get the directors of the movie from the soup
@@ -345,12 +369,14 @@ class IMDbCrawler:
         """
         try:
             # TODO
+            i, j, k = self.preprocessing_casts(soup)
             casts = soup.find_all('ul', class_='ipc-inline-list ipc-inline-list--show-dividers ipc-inline-list--inline ipc-metadata-list-item__list-content baseAlt')
-            directors_soup = BeautifulSoup(str(casts[0]), 'html.parser')
+            directors_soup = BeautifulSoup(str(casts[i]), 'html.parser')
             directors = [str(a.text) for a in directors_soup.find_all('a', class_='ipc-metadata-list-item__list-content-item ipc-metadata-list-item__list-content-item--link')]
             return directors
         except:
             print("failed to get director")
+            return ['']
 
     def get_stars(self, soup):
         """
@@ -367,12 +393,14 @@ class IMDbCrawler:
         """
         try:
             # TODO
+            i, j, k = self.preprocessing_casts(soup)
             casts = soup.find_all('ul', class_='ipc-inline-list ipc-inline-list--show-dividers ipc-inline-list--inline ipc-metadata-list-item__list-content baseAlt')
-            stars_soup = BeautifulSoup(str(casts[2]), 'html.parser')
+            stars_soup = BeautifulSoup(str(casts[k]), 'html.parser')
             stars = [str(a.text) for a in stars_soup.find_all('a', class_='ipc-metadata-list-item__list-content-item ipc-metadata-list-item__list-content-item--link')]
             return stars
         except:
             print("failed to get stars")
+            return ['']
 
     def get_writers(self, soup):
         """
@@ -389,12 +417,14 @@ class IMDbCrawler:
         """
         try:
             # TODO
+            i, j, k = self.preprocessing_casts(soup)
             casts = soup.find_all('ul', class_='ipc-inline-list ipc-inline-list--show-dividers ipc-inline-list--inline ipc-metadata-list-item__list-content baseAlt')
-            writers_soup = BeautifulSoup(str(casts[0]), 'html.parser')
+            writers_soup = BeautifulSoup(str(casts[j]), 'html.parser')
             writers = [str(a.text) for a in writers_soup.find_all('a', class_='ipc-metadata-list-item__list-content-item ipc-metadata-list-item__list-content-item--link')]
             return writers
         except:
             print("failed to get writers")
+            return ['']
 
     def get_related_links(self, soup):
         """
@@ -434,7 +464,7 @@ class IMDbCrawler:
         """
         try:
             # TODO
-            summaries_object = soup.find_all('ul', class_='ipc-metadata-list ipc-metadata-list--dividers-after sc-d1777989-0 FVBoi ipc-metadata-list--base')
+            summaries_object = soup.find('div', {'data-testid': 'sub-section-summaries', 'class': 'sc-f65f65be-0 bBlII'})
             summaries_soup = BeautifulSoup(str(summaries_object), 'html.parser')
             summaries = [str(div.text) for div in summaries_soup.find_all('div', class_='ipc-html-content-inner-div')]
             return summaries
@@ -495,6 +525,7 @@ class IMDbCrawler:
                 review_with_score.append(review)
                 review_with_score.append(rating)
                 reviews_with_scores.append(review_with_score)
+            return reviews_with_scores
         except:
             print("failed to get reviews")
             return [['']]
@@ -693,25 +724,31 @@ class IMDbCrawler:
 
 def main():
     print('hellowww')
-    imdb_crawler = IMDbCrawler(crawling_threshold=20)
+    imdb_crawler = IMDbCrawler(crawling_threshold=1050)
     # imdb_crawler.read_from_file_as_json()
     imdb_crawler.start_crawling()
+    imdb_crawler.write_to_file_as_json()
 
-    # imdb_crawler.write_to_file_as_json()
     count = 1
+    print(len(imdb_crawler.crawled))
+    print(len(imdb_crawler.crawled_ids))
+    print('meowwwwww')
     for crawled in imdb_crawler.crawled:
         print(f'{count}: {crawled}')
         count += 1
+    count = 1
+    for crawled_id in imdb_crawler.crawled_ids:
+        print(f'{count}: {crawled_id}')
+        count += 1
+
     # headers = {
     #     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
     # }
-    # response = get('https://www.imdb.com/title/tt0111161/', headers=headers)
+    # response = get('https://www.imdb.com/title/tt0088247/', headers=headers)
     # if response.status_code == 200:
     #     soup = BeautifulSoup(response.text, 'html.parser')
-    #     gross_object = soup.find('li', {'role': 'presentation', 'class': 'ipc-metadata-list__item sc-1bec5ca1-2 bGsDqT', 'data-testid': 'title-boxoffice-cumulativeworldwidegross'})
-    #     gross_soup = BeautifulSoup(str(gross_object), 'html.parser')
-    #     gross = gross_soup.find('span', 'ipc-metadata-list-item__list-content-item')
-    #     print(gross.text)
+
+
 
 if __name__ == '__main__':
     main()
