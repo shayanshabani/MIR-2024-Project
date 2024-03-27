@@ -34,7 +34,17 @@ class MinHashLSH:
         set
             A set of shingles.
         """
-        shingles = None
+        words = document.split('')
+        shingles = set()
+
+        for i in range(len(words) - 1):
+            shingle = ''
+            for j in range(k):
+                shingle += words[i + j]
+                shingle += ' '
+            shingle = shingle.strip()
+            shingles.add(shingle)
+
         return shingles
 
     def build_characteristic_matrix(self):
@@ -47,7 +57,22 @@ class MinHashLSH:
             The binary characteristic matrix.
         """
         # TODO
-        return
+        shingles_list = []
+        for document in self.documents:
+            shingles_list.append(self.shingle_document(document, 2))
+        universal_shingles_set = set().union(*shingles_list)
+        universal_shingles = list(universal_shingles_set)
+        size_of_rows = len(universal_shingles)
+        size_of_columns = len(self.documents)
+        characteristic_matrix = np.ndarray(shape=(size_of_rows, size_of_columns), dtype=np.int)
+        for i in range(size_of_columns):
+            for j in range(size_of_rows):
+                if universal_shingles[j] in shingles_list[i]:
+                    characteristic_matrix[j][i] = 1
+                else:
+                    characteristic_matrix[j][i] = 0
+
+        return characteristic_matrix
 
     def min_hash_signature(self):
         """
@@ -111,7 +136,10 @@ class MinHashLSH:
             Jaccard score.
         """
         # TODO
-        pass
+        union = first_set.union(second_set)
+        intersection = first_set.intersection(second_set)
+        jaccaurd_score = intersection / union
+        return jaccaurd_score
 
     def jaccard_similarity_test(self, buckets, all_documents):
         """
