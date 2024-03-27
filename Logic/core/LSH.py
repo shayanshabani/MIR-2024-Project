@@ -17,6 +17,8 @@ class MinHashLSH:
         """
         self.documents = documents
         self.num_hashes = num_hashes
+        self.universal_shingles = []
+        self.characteristic_matrix = None
 
     def shingle_document(self, document, k=2):
         """
@@ -62,6 +64,7 @@ class MinHashLSH:
             shingles_list.append(self.shingle_document(document, 2))
         universal_shingles_set = set().union(*shingles_list)
         universal_shingles = list(universal_shingles_set)
+        self.universal_shingles = universal_shingles
         size_of_rows = len(universal_shingles)
         size_of_columns = len(self.documents)
         characteristic_matrix = np.ndarray(shape=(size_of_rows, size_of_columns), dtype=np.int)
@@ -71,7 +74,7 @@ class MinHashLSH:
                     characteristic_matrix[j][i] = 1
                 else:
                     characteristic_matrix[j][i] = 0
-
+        self.characteristic_matrix = characteristic_matrix
         return characteristic_matrix
 
     def min_hash_signature(self):
@@ -84,7 +87,20 @@ class MinHashLSH:
             The Min-Hash signatures matrix.
         """
         # TODO
-        return
+        index_list = []
+        for i in range(len(self.universal_shingles)):
+            index_list.append(i)
+        num_of_shuffle = 10
+        signature_matrix = np.ndarray(shape=(num_of_shuffle, len(self.documents)), dtype=np.int)
+        for i in range(num_of_shuffle):
+            random.shuffle(index_list)
+            for j in range(len(self.documents)):
+                for k in range(len(index_list)):
+                    if self.characteristic_matrix[index_list.index(k)][j] == 1:
+                        signature_matrix[i][j] = k
+                        break
+        
+        return signature_matrix
 
     def lsh_buckets(self, signature, bands=10, rows_per_band=10):
         """
