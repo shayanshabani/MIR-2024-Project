@@ -27,9 +27,15 @@ class SpellCorrection:
             A set of shingles.
         """
         shingles = set()
-        
+        words = word.split()
         # TODO: Create shingle here
-
+        for i in range(len(words) - 1):
+            shingle = ''
+            for j in range(k):
+                shingle += words[i + j]
+                shingle += ' '
+            shingle = shingle.strip()
+            shingles.add(shingle)
         return shingles
     
     def jaccard_score(self, first_set, second_set):

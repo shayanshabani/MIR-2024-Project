@@ -31,10 +31,11 @@ class Index:
             The index of the documents based on the document ID.
         """
 
-        current_index = {}
+        document_index = {}
         #         TODO
-
-        return current_index
+        for document in self.preprocessed_documents:
+            document_index[document['id']] = document
+        return document_index
 
     def index_stars(self):
         """
@@ -48,7 +49,22 @@ class Index:
         """
 
         #         TODO
-        pass
+        star_index = {}
+        for document in self.preprocessed_documents:
+            term_freq = {}
+            for star in document['stars']:
+                star_tokens = star.split()
+
+                for term in star_tokens:
+                    if term not in term_freq:
+                        term_freq[term] = 0
+                    term_freq[term] += 1
+
+            for term, freq in term_freq.items():
+                if term not in star_index:
+                    star_index[term] = {}
+                star_index[term][document['id']] = freq
+        return star_index
 
     def index_genres(self):
         """
@@ -62,7 +78,19 @@ class Index:
         """
 
         #         TODO
-        pass
+        genre_index = {}
+        for document in self.preprocessed_documents:
+            genre_freq = {}
+            for genre in document['genres']:
+                if genre not in genre_freq:
+                    genre_freq[genre] = 0
+                genre_freq[genre] += 1
+
+            for genre, freq in genre_freq.items():
+                if genre not in genre_index:
+                    genre_index[genre] = {}
+                genre_index[genre][document['id']] = freq
+        return genre_index
 
     def index_summaries(self):
         """
@@ -75,10 +103,23 @@ class Index:
             So the index type is: {term: {document_id: tf}}
         """
 
-        current_index = {}
+        summary_index = {}
         #         TODO
+        for document in self.preprocessed_documents:
+            term_freq = {}
+            for summary in document['summaries']:
+                summary_tokens = summary.split()
 
-        return current_index
+                for term in summary_tokens:
+                    if term not in term_freq:
+                        term_freq[term] = 0
+                    term_freq[term] += 1
+
+            for term, freq in term_freq.items():
+                if term not in summary_index:
+                    summary_index[term] = {}
+                summary_index[term][document['id']] = freq
+        return summary_index
 
     def get_posting_list(self, word: str, index_type: str):
         """
@@ -99,8 +140,17 @@ class Index:
 
         try:
             #         TODO
-            pass
-        except:
+            if index_type == 'documents':
+                return sorted([document['id'] for document in self.preprocessed_documents if word in document])
+            elif index_type == 'stars':
+                return sorted(list(self.index['stars'].get(word, {}).keys()))
+            elif index_type == 'genres':
+                return sorted(list(self.index['genres'].get(word, {}).keys()))
+            elif index_type == 'summaries':
+                return sorted(list(self.index['summaries'].get(word, {}).keys()))
+
+        except Exception as e:
+            print('Error: ', e)
             return []
 
     def add_document_to_index(self, document: dict):
@@ -114,7 +164,55 @@ class Index:
         """
 
         #         TODO
-        pass
+        # documents
+        document_index = self.index['documents']
+        document_index[document['id']] = document
+        self.index['documents'] = document_index
+        # stars
+        star_index = self.index['stars']
+        term_freq = {}
+        for star in document['stars']:
+            star_tokens = star.split()
+
+            for term in star_tokens:
+                if term not in term_freq:
+                    term_freq[term] = 0
+                term_freq[term] += 1
+
+        for term, freq in term_freq.items():
+            if term not in star_index:
+                star_index[term] = {}
+            star_index[term][document['id']] = freq
+        self.index['stars'] = star_index
+        # genres
+        genre_index = self.index['genres']
+        genre_freq = {}
+        for genre in document['genres']:
+            if genre not in genre_freq:
+                genre_freq[genre] = 0
+            genre_freq[genre] += 1
+
+        for genre, freq in genre_freq.items():
+            if genre not in genre_index:
+                genre_index[genre] = {}
+            genre_index[genre][document['id']] = freq
+        self.index['genres'] = genre_index
+        # summaries
+        summary_index = self.index['summaries']
+        term_freq = {}
+        for summary in document['summaries']:
+            summary_tokens = summary.split()
+
+            for term in summary_tokens:
+                if term not in term_freq:
+                    term_freq[term] = 0
+                term_freq[term] += 1
+
+        for term, freq in term_freq.items():
+            if term not in summary_index:
+                summary_index[term] = {}
+            summary_index[term][document['id']] = freq
+
 
     def remove_document_from_index(self, document_id: str):
         """
@@ -127,7 +225,44 @@ class Index:
         """
 
         #         TODO
-        pass
+        # documents
+        document_index = self.index['documents']
+        if document_id in document_index:
+            document_index.pop(document_id)
+        # stars
+        to_be_removed = []
+        star_index = self.index['stars']
+        for star in star_index:
+            if document_id in star_index[star]:
+                star_index[star].pop(document_id)
+                if len(star_index[star]) == 0 and (star not in to_be_removed):
+                    to_be_removed.append(star)
+        for to_be in to_be_removed:
+            star_index.pop(to_be)
+        self.index['stars'] = star_index
+        # genres
+        to_be_removed = []
+        genre_index = self.index['genres']
+        for genre in genre_index:
+            if document_id in genre_index[genre]:
+                genre_index[genre].pop(document_id)
+                if len(genre_index[genre]) == 0 and (genre not in to_be_removed):
+                    to_be_removed.append(genre)
+        for to_be in to_be_removed:
+            genre_index.pop(to_be)
+        self.index['genres'] = genre_index
+        # summaries
+        to_be_removed = []
+        summary_index = self.index['summaries']
+        for summary in summary_index:
+            if document_id in summary_index[summary]:
+                summary_index[summary].pop(document_id)
+                if len(summary_index[summary]) == 0 and (summary not in to_be_removed):
+                    to_be_removed.append(summary)
+        for to_be in to_be_removed:
+            summary_index.pop(to_be)
+        self.index['summaries'] = summary_index
+
 
     def check_add_remove_is_correct(self):
         """
