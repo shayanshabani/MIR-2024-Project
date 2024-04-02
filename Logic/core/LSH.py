@@ -19,6 +19,7 @@ class MinHashLSH:
         self.num_hashes = num_hashes
         self.universal_shingles = []
         self.characteristic_matrix = None
+        self.signature_matrix = None
 
     def shingle_document(self, document, k=2):
         """
@@ -36,7 +37,7 @@ class MinHashLSH:
         set
             A set of shingles.
         """
-        words = document.split('')
+        words = document.split()
         shingles = set()
 
         for i in range(len(words) - 1):
@@ -90,8 +91,9 @@ class MinHashLSH:
         index_list = []
         for i in range(len(self.universal_shingles)):
             index_list.append(i)
-        num_of_shuffle = 10
+        num_of_shuffle = 100
         signature_matrix = np.ndarray(shape=(num_of_shuffle, len(self.documents)), dtype=np.int)
+        self.signature_matrix = signature_matrix
         for i in range(num_of_shuffle):
             random.shuffle(index_list)
             for j in range(len(self.documents)):
@@ -99,7 +101,7 @@ class MinHashLSH:
                     if self.characteristic_matrix[index_list.index(k)][j] == 1:
                         signature_matrix[i][j] = k
                         break
-        
+
         return signature_matrix
 
     def lsh_buckets(self, signature, bands=10, rows_per_band=10):
@@ -121,7 +123,20 @@ class MinHashLSH:
             A dictionary mapping bucket IDs to lists of document indices.
         """
         # TODO
-        return
+        num_of_bands = signature.shape[0] / bands
+        buckets = {}
+        # for band_idx in range(num_of_bands):
+        #     start_row = band_idx * rows_per_band
+        #     end_row = (band_idx + 1) * rows_per_band
+        #
+        #     band_hashes = [hash(tuple(row)) for row in signature[start_row:end_row]]
+        #
+        #     for idx, hash_key in enumerate(band_hashes):
+        #         bucket_id = (band_idx, hash_key)
+        #         if bucket_id not in buckets:
+        #             buckets[bucket_id] = []
+        #         buckets[bucket_id].append(start_row + idx)
+        return buckets
 
     def perform_lsh(self):
         """
