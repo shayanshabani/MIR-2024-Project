@@ -167,10 +167,13 @@ class MinHashLSH:
             Jaccard score.
         """
         # TODO
-        union = first_set.union(second_set)
-        intersection = first_set.intersection(second_set)
-        jaccaurd_score = intersection / union
-        return jaccaurd_score
+        union = len(first_set.union(second_set))
+        intersection = len(first_set.intersection(second_set))
+        if union != 0:
+            jaccard_score = intersection / union
+        else:
+            jaccard_score = 0
+        return jaccard_score
 
     def jaccard_similarity_test(self, buckets, all_documents):
         """
