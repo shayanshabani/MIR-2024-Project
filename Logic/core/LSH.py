@@ -10,7 +10,7 @@ class MinHashLSH:
 
         Parameters
         ----------
-        documents : list of str
+        documents : List of str
             The input documents for similarity analysis.
         num_hashes : int
             Number of hashes for mini-hashing.
@@ -125,17 +125,14 @@ class MinHashLSH:
         # TODO
         num_of_bands = signature.shape[0] / bands
         buckets = {}
-        # for band_idx in range(num_of_bands):
-        #     start_row = band_idx * rows_per_band
-        #     end_row = (band_idx + 1) * rows_per_band
-        #
-        #     band_hashes = [hash(tuple(row)) for row in signature[start_row:end_row]]
-        #
-        #     for idx, hash_key in enumerate(band_hashes):
-        #         bucket_id = (band_idx, hash_key)
-        #         if bucket_id not in buckets:
-        #             buckets[bucket_id] = []
-        #         buckets[bucket_id].append(start_row + idx)
+        for band_idx in range(num_of_bands):
+            start_row = band_idx * rows_per_band
+            end_row = start_row + rows_per_band
+            for i in range(len(self.documents)):
+                tuple_arg = np.hstack((signature[start_row:end_row, i], end_row / bands))
+                hashed_signature = hash(tuple(tuple_arg))
+                buckets[hashed_signature] = i
+
         return buckets
 
     def perform_lsh(self):
@@ -148,7 +145,10 @@ class MinHashLSH:
             A dictionary mapping bucket IDs to lists of document indices.
         """
         # TODO
-        return
+        characteristic_matrix = self.build_characteristic_matrix()
+        signature_matrix = self.min_hash_signature()
+        buckets = self.lsh_buckets(signature_matrix)
+        return buckets
 
     def jaccard_score(self, first_set, second_set):
         """
@@ -156,9 +156,9 @@ class MinHashLSH:
 
         Parameters
         ----------
-        first_set : set
+        first_set : Set
             Set of first shingled document.
-        second_set : set
+        second_set : Set
             Set of second shingled document.
 
         Returns
@@ -183,7 +183,7 @@ class MinHashLSH:
         ----------
         buckets : dict
             A dictionary mapping bucket IDs to lists of document indices.
-        all_documents : list
+        all_documents : List
             The input documents for similarity analysis.
         """
         correct_near_duplicates = 0
