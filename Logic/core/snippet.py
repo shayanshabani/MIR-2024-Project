@@ -26,8 +26,11 @@ class Snippet:
         """
 
         # TODO: remove stop words from the query.
-
-        return
+        words = query.split()
+        stop_words = self.load_stopwords()
+        filtered_words = [word for word in words if word not in stop_words]
+        filtered_words = ' '.join(filtered_words)
+        return filtered_words
 
     def find_snippet(self, doc, query):
         """
@@ -53,4 +56,36 @@ class Snippet:
 
         # TODO: Extract snippet and the tokens which are not present in the doc.
 
+        query_without_stopwords = self.remove_stop_words_from_query(query)
+        query_tokens = query_without_stopwords.split()
+        doc_tokens = doc.split()
+        not_exist_words = [token for token in query_tokens if token not in doc_tokens]
+        snippet_list = []
+
+        for token in query_tokens:
+            if token in doc_tokens:
+                occurrences = [i for i, x in enumerate(doc_tokens) if x == token]
+                for occurrence in occurrences:
+                    start_index = max(0, occurrence - self.number_of_words_on_each_side)
+                    end_index = min(len(doc_tokens), occurrence + self.number_of_words_on_each_side + 1)
+                    snippet = ' '.join(doc_tokens[start_index:end_index])
+                    snippet_list.append(snippet)
+
+        final_snippet = ' ... '.join(snippet_list)
+        for token in query_tokens:
+            final_snippet = final_snippet.replace(token, '***{}***'.format(token))
+
         return final_snippet, not_exist_words
+
+    def load_stopwords(self):
+        """
+        Load stopwords.
+
+        Returns
+        ----------
+        set
+            A set containing the stopwords.
+        """
+        with open('stopwords.txt', 'r') as f:
+            stopwords = set(f.read().split())
+        return stopwords
