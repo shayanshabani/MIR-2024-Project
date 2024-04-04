@@ -12,8 +12,11 @@ class Metadata_index:
         path : str
             The path to the indexes.
         """
-        
+
         #TODO
+        self.path = path
+        self.documents = self.read_documents()
+        self.metadata_index = self.create_metadata_index()
 
     def read_documents(self):
         """
@@ -22,13 +25,18 @@ class Metadata_index:
         """
 
         #TODO
+        with open('../../IMDB_crawled.json', 'r') as f:
+            json_data = f.read()
+        documents = json.loads(json_data)
+        return documents
+
 
     def create_metadata_index(self):    
         """
         Creates the metadata index.
         """
         metadata_index = {}
-        metadata_index['averge_document_length'] = {
+        metadata_index['average_document_length'] = {
             'stars': self.get_average_document_field_length('stars'),
             'genres': self.get_average_document_field_length('genres'),
             'summaries': self.get_average_document_field_length('summaries')
@@ -48,6 +56,16 @@ class Metadata_index:
         """
 
         #TODO
+        path = self.path + where + '_' + Index_types.DOCUMENT_LENGTH.value + '_index.json'
+        with open(path, 'r') as f:
+            json_data = f.read()
+        document_lengths = json.loads(json_data)
+        avg_length = 0
+        for key, value in document_lengths.items():
+            avg_length += value
+        avg_length /= len(document_lengths)
+        return avg_length
+
 
     def store_metadata_index(self, path):
         """
