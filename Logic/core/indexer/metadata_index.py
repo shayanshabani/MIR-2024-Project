@@ -84,3 +84,4 @@ class Metadata_index:
     
 if __name__ == "__main__":
     meta_index = Metadata_index()
+    meta_index.store_metadata_index(meta_index.path)
