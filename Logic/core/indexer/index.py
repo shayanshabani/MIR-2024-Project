@@ -337,7 +337,10 @@ class Index:
             raise ValueError('Invalid index name')
 
         # TODO
-        pass
+        json_object = json.dumps(self.index[index_name], indent=4)
+        with open(path, 'w') as f:
+            f.write(json_object)
+
 
     def load_index(self, path: str):
         """
@@ -350,7 +353,10 @@ class Index:
         """
 
         #         TODO
-        pass
+        with open(path, 'r') as f:
+            json_data = f.read()
+        self.index[path[:-5]] = json.loads(json_data)
+
 
     def check_if_index_loaded_correctly(self, index_type: str, loaded_index: dict):
         """
