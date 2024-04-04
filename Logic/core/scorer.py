@@ -66,7 +66,13 @@ class Scorer:
         idf = self.idf.get(term, None)
         if idf is None:
             # TODO
-            pass
+            df = 0
+            if term in self.index:
+                df = len(self.index[term])
+            if df != 0:
+                idf = np.log10(self.N) / df
+            else:
+                idf = 0
         return idf
     
     def get_query_tfs(self, query):
@@ -85,7 +91,13 @@ class Scorer:
         """
         
         #TODO
-
+        term_frequencies = {}
+        for i in range(len(query)):
+            term = query[i]
+            if term not in term_frequencies:
+                term_frequencies[term] = 0
+            term_frequencies[term] += 1
+        return term_frequencies
 
     def compute_scores_with_vector_space_model(self, query, method):
         """
@@ -105,7 +117,17 @@ class Scorer:
         """
 
         # TODO
-        pass
+        document_scores = {}
+        query_tfs = self.get_query_tfs(query)
+
+        documents = self.get_list_of_documents(query)
+        for document in documents:
+            document_scores[document['id']] = self.get_vector_space_model_score(
+                query, query_tfs, document['id'], method[:3], method[4:]
+            )
+        return document_scores
+
+
 
     def get_vector_space_model_score(self, query, query_tfs, document_id, document_method, query_method):
         """
@@ -131,9 +153,52 @@ class Scorer:
         """
 
         #TODO
-        pass
+        distinct_terms = list(set(query))
+        query_weights = []
+        doc_weights = []
+        for term in distinct_terms:
+            # compute weight for term
+            query_term_frequency = query_tfs[term]
+            if query_method[0] == 'l':
+                query_term_frequency = 1 + np.log10(query_term_frequency)
+            query_document_frequency = 1
+            if query_method[1] == 't':
+                query_document_frequency = self.get_idf(term)
+            # compute weight for doc
+            doc_term_frequency = self.index[term][document_id]
+            if document_method[0] == 'l':
+                doc_term_frequency = 1 + np.log10(doc_term_frequency)
+            doc_document_frequency = 1
+            if document_method[1] == 't':
+                doc_document_frequency = self.get_idf(term)
 
-    def compute_socres_with_okapi_bm25(self, query, average_document_field_length, document_lengths):
+            query_weights.append(query_term_frequency * query_document_frequency)
+            doc_weights.append(doc_term_frequency * doc_document_frequency)
+
+        # normalize query weights
+        query_normalization = 1
+        if query_method[2] == 'c':
+            total = 0
+            for weight in query_weights:
+                total += weight ** 2
+            query_normalization = np.sqrt(total)
+        query_score = [weight / query_normalization for weight in query_weights]
+        # normalize doc weights
+        doc_normalization = 1
+        if document_method[2] == 'c':
+            total = 0
+            for weight in query_weights:
+                total += weight ** 2
+            doc_normalization = np.sqrt(total)
+        doc_score = [weight / doc_normalization for weight in doc_weights]
+        final_score = [doc_weight * query_weight for (query_weight, doc_weight) in zip(query_score, doc_score)]
+        score = 0
+        for final in final_score:
+            score += final
+        return score
+
+
+    def compute_scores_with_okapi_bm25(self, query, average_document_field_length, document_lengths):
         """
         compute scores with okapi bm25
 
