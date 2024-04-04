@@ -11,9 +11,9 @@ search_engine = SearchEngine()
 
 def correct_text(text: str, all_documents: List[str]) -> str:
     """
-    Correct the give query text, if it is misspelled using Jacard similarity
+    Correct the give query text, if it is misspelled using Jaccard similarity
 
-    Paramters
+    Parameters
     ---------
     text: str
         The query text
@@ -21,6 +21,7 @@ def correct_text(text: str, all_documents: List[str]) -> str:
         The input documents.
 
     Returns
+    -------
     str
         The corrected form of the given text
     """

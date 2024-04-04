@@ -1,4 +1,4 @@
-
+import wandb
 from typing import List
 
 class Evaluation:
@@ -25,7 +25,19 @@ class Evaluation:
         precision = 0.0
 
         # TODO: Calculate precision here
-        
+        total_queries = len(actual)
+
+        for i in range(total_queries):
+            actual_set = set(actual[i])
+            predicted_set = set(predicted[i])
+            true_positives = len(actual_set.intersection(predicted_set))
+            false_positives = len(predicted_set.difference(actual_set))
+
+            if true_positives + false_positives != 0:
+                precision += true_positives / (true_positives + false_positives)
+
+        precision /= total_queries
+
         return precision
     
     def calculate_recall(self, actual: List[List[str]], predicted: List[List[str]]) -> float:
@@ -47,6 +59,17 @@ class Evaluation:
         recall = 0.0
 
         # TODO: Calculate recall here
+        total_queries = len(actual)
+
+        for i in range(total_queries):
+            actual_set = set(actual[i])
+            predicted_set = set(predicted[i])
+            true_positives = len(actual_set.intersection(predicted_set))
+
+            if len(actual_set) != 0:
+                recall += true_positives / len(actual_set)
+
+        recall /= total_queries
 
         return recall
     
@@ -69,6 +92,22 @@ class Evaluation:
         f1 = 0.0
 
         # TODO: Calculate F1 here
+        total_queries = len(actual)
+
+        for i in range(total_queries):
+            actual_set = set(actual[i])
+            predicted_set = set(predicted[i])
+
+            true_positives = len(actual_set.intersection(predicted_set))
+            false_positives = len(predicted_set.difference(actual_set))
+            false_negatives = len(actual_set.difference(predicted_set))
+
+            precision = true_positives / (true_positives + false_positives)
+            recall = true_positives / (true_positives + false_negatives)
+
+            if precision + recall != 0:
+                f1 += 2 * (precision * recall) / (precision + recall)
+        f1 /= total_queries
 
         return f1
     
@@ -91,6 +130,23 @@ class Evaluation:
         AP = 0.0
 
         # TODO: Calculate AP here
+        total_queries = len(actual)
+
+        for i in range(total_queries):
+            actual_set = set(actual[i])
+            predicted_list = predicted[i]
+
+            num_correct = 0
+            precision_sum = 0.0
+
+            for j, item in enumerate(predicted_list):
+                if item in actual_set:
+                    num_correct += 1
+                    precision = num_correct / (j + 1)
+                    precision_sum += precision
+
+            if num_correct != 0:
+                AP += precision_sum / num_correct
 
         return AP
     
@@ -113,7 +169,9 @@ class Evaluation:
         MAP = 0.0
 
         # TODO: Calculate MAP here
-
+        total_queries = len(actual)
+        AP = self.calculate_AP(actual, predicted)
+        MAP = AP / total_queries
         return MAP
     
     def cacluate_DCG(self, actual: List[List[str]], predicted: List[List[str]]) -> float:
@@ -135,7 +193,21 @@ class Evaluation:
         DCG = 0.0
 
         # TODO: Calculate DCG here
+        total_queries = len(actual)
 
+        for i in range(total_queries):
+            actual_set = set(actual[i])
+            predicted_list = predicted[i]
+            dcg = 0.0
+            for j, item in enumerate(predicted_list):
+                if item in actual_set:
+                    relevance = 1
+                    gain = 2 ** relevance - 1
+                    discount = 1 / (j + 1)
+                    dcg += gain * discount
+
+            DCG += dcg
+        DCG /= total_queries
         return DCG
     
     def cacluate_NDCG(self, actual: List[List[str]], predicted: List[List[str]]) -> float:
@@ -157,7 +229,33 @@ class Evaluation:
         NDCG = 0.0
 
         # TODO: Calculate NDCG here
+        total_queries = len(actual)
 
+        for i in range(total_queries):
+            actual_set = set(actual[i])
+            predicted_list = predicted[i]
+            dcg = 0.0
+            for j, item in enumerate(predicted_list):
+                if item in actual_set:
+                    relevance = 1
+                    gain = 2 ** relevance - 1
+                    discount = 1 / (j + 1)
+                    dcg += gain * discount
+
+            ideal_dcg = 0.0
+            for j in range(len(actual_set)):
+                relevance = 1
+                gain = 2 ** relevance - 1
+                discount = 1 / (j + 1)
+                ideal_dcg += gain * discount
+
+            if ideal_dcg == 0:
+                ndcg = 0.0
+            else:
+                ndcg = dcg / ideal_dcg
+
+            NDCG += ndcg
+        NDCG /= total_queries
         return NDCG
     
     def cacluate_RR(self, actual: List[List[str]], predicted: List[List[str]]) -> float:
@@ -179,7 +277,17 @@ class Evaluation:
         RR = 0.0
 
         # TODO: Calculate MRR here
+        total_queries = len(actual)
 
+        for i in range(total_queries):
+            actual_set = set(actual[i])
+            predicted_list = predicted[i]
+
+            for j, item in enumerate(predicted_list):
+                if item in actual_set:
+                    rr = 1 / (j + 1)
+                    RR += rr
+                    break
         return RR
     
     def cacluate_MRR(self, actual: List[List[str]], predicted: List[List[str]]) -> float:
@@ -201,7 +309,8 @@ class Evaluation:
         MRR = 0.0
 
         # TODO: Calculate MRR here
-
+        RR = self.cacluate_RR(actual, predicted)
+        MRR = RR / len(actual)
         return MRR
     
 
@@ -234,6 +343,15 @@ class Evaluation:
         print(f"name = {self.name}")
 
         #TODO: Print the evaluation metrics
+        print(f"Precision: {precision}")
+        print(f"Recall: {recall}")
+        print(f"F1: {f1}")
+        print(f"AP: {ap}")
+        print(f"MAP: {map}")
+        print(f"DCG: {dcg}")
+        print(f"NDCG: {ndcg}")
+        print(f"RR: {rr}")
+        print(f"MRR: {mrr}")
       
 
     def log_evaluation(self, precision, recall, f1, ap, map, dcg, ndcg, rr, mrr):
@@ -264,6 +382,19 @@ class Evaluation:
         """
         
         #TODO: Log the evaluation metrics using Wandb
+        wandb.init(project="MIR-2024-Project", entity="shayanshabani")
+
+        wandb.log({
+            "Precision": precision,
+            "Recall": recall,
+            "F1 Score": f1,
+            "Average Precision": ap,
+            "Mean Average Precision": map,
+            "Discounted Cumulative Gain": dcg,
+            "Normalized Discounted Cumulative Gain": ndcg,
+            "Reciprocal Rank": rr,
+            "Mean Reciprocal Rank": mrr
+        })
 
 
     def calculate_evaluation(self, actual: List[List[str]], predicted: List[List[str]]):
@@ -289,7 +420,7 @@ class Evaluation:
         rr = self.cacluate_RR(actual, predicted)
         mrr = self.cacluate_MRR(actual, predicted)
 
-        #call print and viualize functions
+        #call print and visualize functions
         self.print_evaluation(precision, recall, f1, ap, map_score, dcg, ndcg, rr, mrr)
         self.log_evaluation(precision, recall, f1, ap, map_score, dcg, ndcg, rr, mrr)
 
