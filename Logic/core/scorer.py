@@ -219,7 +219,13 @@ class Scorer:
         """
 
         # TODO
-        pass
+        documents = self.get_list_of_documents(query)
+        document_scores = {}
+        for document in documents:
+            document_scores[document['id']] = self.get_okapi_bm25_score(
+                query, document['id'], average_document_field_length, document_lengths
+            )
+        return document_scores
 
     def get_okapi_bm25_score(self, query, document_id, average_document_field_length, document_lengths):
         """
@@ -244,4 +250,16 @@ class Scorer:
         """
 
         # TODO
-        pass
+        distinct_terms = list(set(query))
+        final_score = 0
+        for term in distinct_terms:
+            idf = self.get_idf(term)
+            tf = self.index[term][document_id]
+            document_length = document_lengths[document_id]
+            k = 2
+            b = 0.75
+
+            coefficient = ((k + 1) * tf) / (k * ((1 - b) + b * (document_length / average_document_field_length)) + tf)
+            score = idf * coefficient
+            final_score += score
+        return final_score

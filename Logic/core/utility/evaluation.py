@@ -1,5 +1,6 @@
 import wandb
 from typing import List
+import numpy as np
 
 class Evaluation:
 
@@ -203,7 +204,7 @@ class Evaluation:
                 if item in actual_set:
                     relevance = 1
                     gain = 2 ** relevance - 1
-                    discount = 1 / (j + 1)
+                    discount = 1 / np.log2(j + 1)
                     dcg += gain * discount
 
             DCG += dcg
@@ -239,7 +240,7 @@ class Evaluation:
                 if item in actual_set:
                     relevance = 1
                     gain = 2 ** relevance - 1
-                    discount = 1 / (j + 1)
+                    discount = 1 / np.log2(j + 1)
                     dcg += gain * discount
 
             ideal_dcg = 0.0
