@@ -12,7 +12,7 @@ class SearchEngine:
         Initializes the search engine.
 
         """
-        path = '/index'
+        path = 'index/'
         self.document_indexes = {
             Indexes.STARS: Index_reader(path, Indexes.STARS),
             Indexes.GENRES: Index_reader(path, Indexes.GENRES),
@@ -115,6 +115,7 @@ class SearchEngine:
         for field in weights:
             for tier in ["first_tier", "second_tier", "third_tier"]:
                 #TODO
+
                 pass
 
     def find_scores_with_safe_ranking(self, query, method, weights, scores):
