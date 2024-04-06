@@ -25,9 +25,10 @@ class Metadata_index:
         """
 
         #TODO
-        with open('../../IMDB_crawled.json', 'r') as f:
-            json_data = f.read()
-        documents = json.loads(json_data)
+        document_index = Index_reader('index/', index_name=Indexes.DOCUMENTS).index
+        documents = []
+        for key, value in document_index.items():
+            documents.append(value)
         return documents
 
 

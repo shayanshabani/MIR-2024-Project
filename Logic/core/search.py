@@ -2,8 +2,8 @@ import json
 import numpy as np
 from .preprocess import Preprocessor
 from .scorer import Scorer
-from .indexes_enum import Indexes, Index_types
-from .index_reader import Index_reader
+from indexer.indexes_enum import Indexes, Index_types
+from indexer.index_reader import Index_reader
 
 
 class SearchEngine:
@@ -59,7 +59,7 @@ class SearchEngine:
 
         scores = {}
         if safe_ranking:
-            self.find_scores_with_safe_ranking(query, method, weights, scores)
+            scores = self.find_scores_with_safe_ranking(query, method, weights, scores)
         else:
             self.find_scores_with_unsafe_ranking(query, method, weights, max_results, scores)
 
@@ -87,7 +87,13 @@ class SearchEngine:
             The final scores of the documents.
         """
         # TODO
-        pass
+        for field in weights:
+            for doc, score in scores[field.value].items():
+                if doc not in final_scores:
+                    final_scores[doc] = 0
+                final_scores[doc] += score * weights[field]
+
+
 
     def find_scores_with_unsafe_ranking(self, query, method, weights, max_results, scores):
         """
@@ -129,7 +135,22 @@ class SearchEngine:
 
         for field in weights:
             #TODO
-            pass
+            index = self.document_indexes[field].index
+            num_of_docs = set()
+            for term, doc_tf in index.items():
+                for doc, tf in index[term].items():
+                    num_of_docs.add(doc)
+
+            scorer = Scorer(index, len(num_of_docs))
+            if method == 'OkapiBM25':
+                document_length_index = self.document_lengths_index[field].index
+                average_length = self.metadata_index.index['average_document_length'][field.value]
+                score = scorer.compute_scores_with_okapi_bm25(query, average_length, document_length_index)
+            else:
+                score = scorer.compute_scores_with_vector_space_model(query, method)
+            scores[field.value] = score
+        return scores
+
 
     def merge_scores(self, scores1, scores2):
         """
@@ -149,6 +170,16 @@ class SearchEngine:
         """
 
         #TODO
+        merged_scores = {}
+        for doc, score in scores1.items():
+            if doc not in merged_scores:
+                merged_scores[doc] = 0
+            merged_scores[doc] += score
+        for doc, score in scores2.items():
+            if doc not in merged_scores:
+                merged_scores[doc] = 0
+            merged_scores[doc] += score
+        return merged_scores
 
 
 if __name__ == '__main__':
