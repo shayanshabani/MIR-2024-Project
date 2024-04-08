@@ -6,8 +6,10 @@ from Logic.core.indexer.indexes_enum import Indexes, Index_types
 from Logic.core.indexer.index_reader import Index_reader
 import json
 
-path = 'core/indexer/index/documents_index.json'
-document_index = Index_reader(path, Indexes.DOCUMENTS)
+path = '../Logic/core/indexer/index/documents_index.json'
+with open(path, 'r') as f:
+    json_data = f.read()
+document_index = json.loads(json_data)
 movies_dataset = document_index  # TODO
 search_engine = SearchEngine()
 

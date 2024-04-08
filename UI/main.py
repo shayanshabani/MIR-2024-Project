@@ -123,7 +123,7 @@ def main():
         unsafe_allow_html=True,
     )
 
-    search_term = st.text_input("Seacrh Term")
+    search_term = st.text_input("Search Term")
     # search_summary_terms = st.text_input("Search in summary of movie")
     with st.expander("Advanced Search"):
         search_max_num = st.number_input(
