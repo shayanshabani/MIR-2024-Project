@@ -187,7 +187,7 @@ class Scorer:
         doc_normalization = 1
         if document_method[2] == 'c':
             total = 0
-            for weight in query_weights:
+            for weight in doc_weights:
                 total += weight ** 2
             doc_normalization = np.sqrt(total)
         doc_score = [weight / doc_normalization for weight in doc_weights]

@@ -1,7 +1,7 @@
 import numpy as np
 import itertools
 import random
-
+import json
 
 class MinHashLSH:
     def __init__(self, documents, num_hashes):
@@ -68,7 +68,7 @@ class MinHashLSH:
         self.universal_shingles = universal_shingles
         size_of_rows = len(universal_shingles)
         size_of_columns = len(self.documents)
-        characteristic_matrix = np.ndarray(shape=(size_of_rows, size_of_columns), dtype=np.int)
+        characteristic_matrix = np.ndarray(shape=(size_of_rows, size_of_columns), dtype=np.short)
         for i in range(size_of_columns):
             for j in range(size_of_rows):
                 if universal_shingles[j] in shingles_list[i]:
@@ -91,8 +91,8 @@ class MinHashLSH:
         index_list = []
         for i in range(len(self.universal_shingles)):
             index_list.append(i)
-        num_of_shuffle = 100
-        signature_matrix = np.ndarray(shape=(num_of_shuffle, len(self.documents)), dtype=np.int)
+        num_of_shuffle = self.num_hashes
+        signature_matrix = np.ndarray(shape=(num_of_shuffle, len(self.documents)), dtype=np.int_)
         self.signature_matrix = signature_matrix
         for i in range(num_of_shuffle):
             random.shuffle(index_list)
@@ -123,7 +123,7 @@ class MinHashLSH:
             A dictionary mapping bucket IDs to lists of document indices.
         """
         # TODO
-        num_of_bands = signature.shape[0] / bands
+        num_of_bands = signature.shape[0] // bands
         buckets = {}
         for band_idx in range(num_of_bands):
             start_row = band_idx * rows_per_band
@@ -131,7 +131,9 @@ class MinHashLSH:
             for i in range(len(self.documents)):
                 tuple_arg = np.hstack((signature[start_row:end_row, i], end_row / bands))
                 hashed_signature = hash(tuple(tuple_arg))
-                buckets[hashed_signature] = i
+                if hashed_signature not in buckets:
+                    buckets[hashed_signature] = []
+                buckets[hashed_signature].append(i)
 
         return buckets
 
@@ -148,7 +150,8 @@ class MinHashLSH:
         characteristic_matrix = self.build_characteristic_matrix()
         signature_matrix = self.min_hash_signature()
         buckets = self.lsh_buckets(signature_matrix)
-        return buckets
+        self.jaccard_similarity_test(buckets, self.documents)
+
 
     def jaccard_score(self, first_set, second_set):
         """
@@ -222,3 +225,29 @@ class MinHashLSH:
 
         # a good score is around 0.8
         print("your final score in near duplicate detection:", correct_near_duplicates / all_near_duplicates)
+
+
+
+with open('LSHFakeData.json', 'r') as f:
+    json_data = f.read()
+fake_movies = json.loads(json_data)
+documents = []
+for fake_movie in fake_movies:
+    combined_summary = ''
+    for summary in fake_movie['summaries']:
+        combined_summary += summary + ' '
+    documents.append(combined_summary.strip())
+
+with open('../IMDB_crawled.json', 'r') as f:
+    json_data = f.read()
+crawled_movies = json.loads(json_data)
+
+for crawled_movie in crawled_movies:
+    combined_summary = ''
+    for summary in crawled_movie['summaries']:
+        combined_summary += summary + ' '
+    documents.append(combined_summary.strip())
+
+
+lsh = MinHashLSH(documents, 100)
+lsh.perform_lsh()
