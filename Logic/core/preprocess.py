@@ -15,7 +15,7 @@ class Preprocessor:
         """
         # TODO
         self.documents = documents
-        self.stopwords = self.load_stopwords()
+        self.stopwords = ['this', 'that', 'about', 'whom', 'being', 'where', 'why', 'had', 'should', 'each']
         self.lemmatizer = WordNetLemmatizer()
         self.stemmer = PorterStemmer()
 
@@ -31,10 +31,12 @@ class Preprocessor:
          # TODO
         preprocessed_documents = []
         for document in self.documents:
-            document = self.remove_links(document)
-            document = self.remove_punctuations(document)
-            document = self.normalize(document)
-            document = self.remove_stopwords(document)
+            for field in ['stars', 'genres', 'summaries']:
+                for i in range(len(document[field])):
+                    document[field][i] = self.remove_links(document[field][i])
+                    document[field][i] = self.remove_punctuations(document[field][i])
+                    document[field][i] = self.normalize(document[field][i])
+                    document[field][i] = self.remove_stopwords(document[field][i])
             preprocessed_documents.append(document)
         return preprocessed_documents
 
@@ -75,9 +77,9 @@ class Preprocessor:
             The text with links removed.
         """
         # TODO
-        patterns = [r'\S*http\S*', r'\S*www\S*', r'\S+\.ir\S*', r'\S+\.com\S*', r'\S+\.org\S*', r'\S*@\S*']
+        patterns = ['https', 'http', 'www', '.ir', '.com', '.org', '@']
         for pattern in patterns:
-            text = re.sub(pattern[3:-3], '', text)
+            text = text.replace(pattern, ' ')
         return text
 
     def remove_punctuations(self, text: str):
@@ -95,7 +97,7 @@ class Preprocessor:
             The text with punctuations removed.
         """
         # TODO
-        text = re.sub(r'[^\w\s]', '', text)
+        text = re.sub(r'[^\w\s]', ' ', text)
         return text
 
     def tokenize(self, text: str):
@@ -133,7 +135,8 @@ class Preprocessor:
         # TODO
         words = self.tokenize(text)
         filtered_words = [word for word in words if word not in self.stopwords]
-        return filtered_words
+
+        return ' '.join(filtered_words)
 
     def load_stopwords(self):
         """

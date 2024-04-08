@@ -3,7 +3,7 @@ import os
 import json
 import copy
 from indexes_enum import Indexes
-
+from Logic.core.preprocess import Preprocessor
 
 class Index:
     def __init__(self, preprocessed_documents: list):
@@ -52,6 +52,7 @@ class Index:
         star_index = {}
         for document in self.preprocessed_documents:
             term_freq = {}
+
             for star in document['stars']:
                 star_tokens = star.split()
 
@@ -271,10 +272,17 @@ class Index:
 
         dummy_document = {
             'id': '100',
-            'stars': ['tim', 'henry'],
+            'stars': ['emma', 'mark'],
             'genres': ['drama', 'crime'],
-            'summaries': ['good']
+            'summaries': ['fighter']
         }
+        # for star in dummy_document['stars']:
+        #     if star not in self.index['stars']:
+        #         self.index['stars'][star] = {}
+        # for genre in dummy_document['genres']:
+        #     if genre not in self.index['genres']:
+        #         self.index['genres'][genre] = {}
+
 
         index_before_add = copy.deepcopy(self.index)
         self.add_document_to_index(dummy_document)
@@ -284,14 +292,14 @@ class Index:
             print('Add is incorrect, document')
             return
 
-        if (set(index_after_add[Indexes.STARS.value]['tim']).difference(set(index_before_add[Indexes.STARS.value]['tim']))
+        if (set(index_after_add[Indexes.STARS.value]['emma']).difference(set(index_before_add[Indexes.STARS.value]['emma']))
                 != {dummy_document['id']}):
-            print('Add is incorrect, tim')
+            print('Add is incorrect, emma')
             return
 
-        if (set(index_after_add[Indexes.STARS.value]['henry']).difference(set(index_before_add[Indexes.STARS.value]['henry']))
+        if (set(index_after_add[Indexes.STARS.value]['mark']).difference(set(index_before_add[Indexes.STARS.value]['mark']))
                 != {dummy_document['id']}):
-            print('Add is incorrect, henry')
+            print('Add is incorrect, mark')
             return
         if (set(index_after_add[Indexes.GENRES.value]['drama']).difference(set(index_before_add[Indexes.GENRES.value]['drama']))
                 != {dummy_document['id']}):
@@ -303,9 +311,9 @@ class Index:
             print('Add is incorrect, crime')
             return
 
-        if (set(index_after_add[Indexes.SUMMARIES.value]['good']).difference(set(index_before_add[Indexes.SUMMARIES.value]['good']))
+        if (set(index_after_add[Indexes.SUMMARIES.value]['fighter']).difference(set(index_before_add[Indexes.SUMMARIES.value]['fighter']))
                 != {dummy_document['id']}):
-            print('Add is incorrect, good')
+            print('Add is incorrect, fighter')
             return
 
         print('Add is correct')
@@ -317,6 +325,7 @@ class Index:
             print('Remove is correct')
         else:
             print('Remove is incorrect')
+
 
     def store_index(self, path: str, index_name: str = None):
         """
@@ -355,7 +364,7 @@ class Index:
         #         TODO
         with open(path, 'r') as f:
             json_data = f.read()
-        self.index[path[:-5]] = json.loads(json_data)
+        self.index[path[6:-11]] = json.loads(json_data)
 
 
     def check_if_index_loaded_correctly(self, index_type: str, loaded_index: dict):
@@ -377,7 +386,7 @@ class Index:
 
         return self.index[index_type] == loaded_index
 
-    def check_if_indexing_is_good(self, index_type: str, check_word: str = 'good'):
+    def check_if_indexing_is_good(self, index_type: str, check_word: str = 'fighter'):
         """
         Checks if the indexing is good. Do not change this function. You can use this
         function to check if your indexing is correct.
@@ -398,13 +407,15 @@ class Index:
         # brute force to check check_word in the summaries
         start = time.time()
         docs = []
+        another = []
         for document in self.preprocessed_documents:
             if index_type not in document or document[index_type] is None:
                 continue
 
             for field in document[index_type]:
-                if check_word in field:
+                if check_word in field.split():
                     docs.append(document['id'])
+                    another.append(document)
                     break
 
             # if we have found 3 documents with the word, we can break
@@ -436,6 +447,32 @@ class Index:
                 return False
         else:
             print('Indexing is wrong')
+            print(set(docs))
+            # 'tt1454029', 'tt0053198'
             return False
 
 # TODO: Run the class with needed parameters, then run check methods and finally report the results of check methods
+
+with open('../../IMDB_crawled.json', 'r') as f:
+    json_data = f.read()
+crawled_movies = json.loads(json_data)
+preprocessor = Preprocessor(crawled_movies)
+prep_movies = preprocessor.preprocess()
+index = Index(prep_movies)
+
+index.check_add_remove_is_correct()
+
+for item in ['documents', 'stars', 'genres', 'summaries']:
+    print(item, ": ")
+    index.check_if_indexing_is_good(item)
+    print('****************************')
+
+for item in ['documents', 'stars', 'genres', 'summaries']:
+    path = 'index/' + item + '_index.json'
+    index.store_index(path, item)
+
+for item in ['documents', 'stars', 'genres', 'summaries']:
+    path = 'index/' + item + '_index.json'
+    index.load_index(path)
+    print(index.check_if_index_loaded_correctly(item, index.index[item]))
+    print('****************************')
