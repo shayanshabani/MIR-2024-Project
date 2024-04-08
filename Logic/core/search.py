@@ -115,7 +115,7 @@ class SearchEngine:
         for field in weights:
             for tier in ["first_tier", "second_tier", "third_tier"]:
                 #TODO
-                first_tier_index =
+
                 pass
 
     def find_scores_with_safe_ranking(self, query, method, weights, scores):
