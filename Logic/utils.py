@@ -1,11 +1,14 @@
 from typing import Dict, List
-from core.search import SearchEngine
-from core.spell_correction import SpellCorrection
-from core.snippet import Snippet
-from core.indexes_enum import Indexes, Index_types
+from Logic.core.search import SearchEngine
+from Logic.core.spell_correction import SpellCorrection
+from Logic.core.snippet import Snippet
+from Logic.core.indexer.indexes_enum import Indexes, Index_types
+from Logic.core.indexer.index_reader import Index_reader
 import json
 
-movies_dataset = None  # TODO
+path = 'core/indexer/index/documents_index.json'
+document_index = Index_reader(path, Indexes.DOCUMENTS)
+movies_dataset = document_index  # TODO
 search_engine = SearchEngine()
 
 

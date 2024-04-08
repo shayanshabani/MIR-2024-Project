@@ -1,9 +1,9 @@
 import json
 import numpy as np
-from .preprocess import Preprocessor
-from .scorer import Scorer
-from indexer.indexes_enum import Indexes, Index_types
-from indexer.index_reader import Index_reader
+from Logic.core.preprocess import Preprocessor
+from Logic.core.scorer import Scorer
+from Logic.core.indexer.indexes_enum import Indexes, Index_types
+from Logic.core.indexer.index_reader import Index_reader
 
 
 class SearchEngine:
@@ -54,8 +54,8 @@ class SearchEngine:
             A list of tuples containing the document IDs and their scores sorted by their scores.
         """
 
-        preprocessor = Preprocessor([query])
-        query = preprocessor.preprocess()[0].split()
+        preprocessor = Preprocessor([])
+        query = preprocessor.preprocess_query([query])[0].split()
 
         scores = {}
         if safe_ranking:

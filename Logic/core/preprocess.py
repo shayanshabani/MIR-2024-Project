@@ -150,3 +150,13 @@ class Preprocessor:
         with open('stopwords.txt', 'r') as f:
             stopwords = set(f.read().split())
         return stopwords
+
+    def preprocess_query(self, documents):
+        preprocessed_documents = []
+        for document in documents:
+            document = self.normalize(document)
+            document = self.remove_links(document)
+            document = self.remove_punctuations(document)
+            document = self.remove_stopwords(document)
+            preprocessed_documents.append(document)
+        return preprocessed_documents
