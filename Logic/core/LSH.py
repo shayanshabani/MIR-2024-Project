@@ -65,6 +65,7 @@ class MinHashLSH:
             shingles_list.append(self.shingle_document(document, 2))
         universal_shingles_set = set().union(*shingles_list)
         universal_shingles = list(universal_shingles_set)
+        print(len(universal_shingles))
         self.universal_shingles = universal_shingles
         size_of_rows = len(universal_shingles)
         size_of_columns = len(self.documents)
@@ -76,6 +77,7 @@ class MinHashLSH:
                 else:
                     characteristic_matrix[j][i] = 0
         self.characteristic_matrix = characteristic_matrix
+        print('fuck the world')
         return characteristic_matrix
 
     def min_hash_signature(self):
@@ -88,23 +90,20 @@ class MinHashLSH:
             The Min-Hash signatures matrix.
         """
         # TODO
-        index_list = []
-        for i in range(len(self.universal_shingles)):
-            index_list.append(i)
-        num_of_shuffle = self.num_hashes
-        signature_matrix = np.ndarray(shape=(num_of_shuffle, len(self.documents)), dtype=np.int_)
-        self.signature_matrix = signature_matrix
-        for i in range(num_of_shuffle):
-            random.shuffle(index_list)
-            for j in range(len(self.documents)):
-                for k in range(len(index_list)):
-                    if self.characteristic_matrix[index_list.index(k)][j] == 1:
-                        signature_matrix[i][j] = k
-                        break
+        number_of_hashes = 1000
+        hash_seeds = [random.randint(0, 999999) for _ in range(number_of_hashes)]
 
-        return signature_matrix
+        min_hash_signature = np.full((number_of_hashes, len(self.documents)), np.iinfo(np.int64).max, dtype=np.int64)
 
-    def lsh_buckets(self, signature, bands=10, rows_per_band=10):
+        for doc_index, document in enumerate(self.documents):
+            shingles = self.shingle_document(document)
+
+            for shingle in shingles:
+                for j in range(number_of_hashes):
+                    min_hash_signature[j, doc_index] = min(min_hash_signature[j, doc_index], hash(shingle + str(hash_seeds[j])))
+        return min_hash_signature
+
+    def lsh_buckets(self, signature, bands=200, rows_per_band=5):
         """
         Group documents into Locality-Sensitive Hashing (LSH) buckets based on Min-Hash signatures.
 
@@ -123,13 +122,14 @@ class MinHashLSH:
             A dictionary mapping bucket IDs to lists of document indices.
         """
         # TODO
-        num_of_bands = signature.shape[0] // bands
+        #num_of_bands = signature.shape[0] // bands
+
         buckets = {}
-        for band_idx in range(num_of_bands):
+        for band_idx in range(bands):
             start_row = band_idx * rows_per_band
             end_row = start_row + rows_per_band
             for i in range(len(self.documents)):
-                tuple_arg = np.hstack((signature[start_row:end_row, i], end_row / bands))
+                tuple_arg = np.hstack((signature[start_row:end_row, i], end_row / rows_per_band))
                 hashed_signature = hash(tuple(tuple_arg))
                 if hashed_signature not in buckets:
                     buckets[hashed_signature] = []
@@ -147,7 +147,7 @@ class MinHashLSH:
             A dictionary mapping bucket IDs to lists of document indices.
         """
         # TODO
-        characteristic_matrix = self.build_characteristic_matrix()
+        #characteristic_matrix = self.build_characteristic_matrix()
         signature_matrix = self.min_hash_signature()
         buckets = self.lsh_buckets(signature_matrix)
         self.jaccard_similarity_test(buckets, self.documents)
@@ -191,12 +191,14 @@ class MinHashLSH:
         """
         correct_near_duplicates = 0
         all_near_duplicates = 0
-
+        duplicate_movies = []
         for bucket_id in buckets.keys():
             docs_in_this_bucket = buckets[bucket_id]
             unique_doc_ids = set(docs_in_this_bucket)
             if len(unique_doc_ids) > 1:
                 combinations = list(itertools.combinations(unique_doc_ids, 2))
+                if combinations not in duplicate_movies:
+                    duplicate_movies.append(combinations)
                 for comb in combinations:
                     all_near_duplicates += 1
 
@@ -225,6 +227,7 @@ class MinHashLSH:
 
         # a good score is around 0.8
         print("your final score in near duplicate detection:", correct_near_duplicates / all_near_duplicates)
+        print(sorted(duplicate_movies))
 
 
 
@@ -243,10 +246,11 @@ with open('../IMDB_crawled.json', 'r') as f:
 crawled_movies = json.loads(json_data)
 
 for crawled_movie in crawled_movies:
-    combined_summary = ''
-    for summary in crawled_movie['summaries']:
-        combined_summary += summary + ' '
-    documents.append(combined_summary.strip())
+    if len(crawled_movie['summaries']) != 0:
+        combined_summary = ''
+        for summary in crawled_movie['summaries']:
+            combined_summary += summary + ' '
+        documents.append(combined_summary.strip())
 
 
 lsh = MinHashLSH(documents, 100)

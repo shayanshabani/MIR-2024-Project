@@ -89,6 +89,7 @@ class Tiered_index:
         path = path + index_name.value + "_" + Index_types.TIERED.value + "_index.json"
         with open(path, "w") as file:
             json.dump(self.tiered_index[index_name], file, indent=4)
+        print(f'tiered index for {index_name.value} stored successfully!')
 
 
 if __name__ == "__main__":

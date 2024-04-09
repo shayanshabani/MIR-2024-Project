@@ -547,7 +547,7 @@ class IMDbCrawler:
         try:
             # TODO
             genres_list = []
-            genre_object = soup.find_all('div', 'sc-491663c0-10 rbXFE')
+            genre_object = soup.find_all('div', 'sc-4e4cc5f9-10 jXLkbv')
             genre_soup = BeautifulSoup(str(genre_object), 'html.parser')
             genres = genre_soup.find_all('a', 'ipc-chip ipc-chip--on-baseAlt')
             for genre in genres:
@@ -726,9 +726,9 @@ class IMDbCrawler:
 def main():
     print('hellowww')
     imdb_crawler = IMDbCrawler(crawling_threshold=1050)
-    imdb_crawler.read_from_file_as_json()
-    #imdb_crawler.start_crawling()
-    #imdb_crawler.write_to_file_as_json()
+    #imdb_crawler.read_from_file_as_json()
+    imdb_crawler.start_crawling()
+    imdb_crawler.write_to_file_as_json()
 
     count = 1
     print(len(imdb_crawler.crawled))
@@ -743,12 +743,19 @@ def main():
         count += 1
 
     # headers = {
-    #     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
+    #     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+    #     'Accept-Language': 'en-US,en;q=0.9'
     # }
     # response = get('https://www.imdb.com/title/tt0088247/', headers=headers)
     # if response.status_code == 200:
     #     soup = BeautifulSoup(response.text, 'html.parser')
-
+    #     genres_list = []
+    #     genre_object = soup.find_all('div', 'sc-4e4cc5f9-10 jXLkbv')
+    #     genre_soup = BeautifulSoup(str(genre_object), 'html.parser')
+    #     genres = genre_soup.find_all('a', 'ipc-chip ipc-chip--on-baseAlt')
+    #     for genre in genres:
+    #         genres_list.append(str(genre.text))
+    #     print(genres_list)
 
 
 if __name__ == '__main__':

@@ -439,7 +439,7 @@ class Index:
         if set(docs).issubset(set(posting_list)):
             print('Indexing is correct')
 
-            if implemented_time < brute_force_time:
+            if implemented_time <= brute_force_time:
                 print('Indexing is good')
                 return True
             else:
@@ -448,7 +448,6 @@ class Index:
         else:
             print('Indexing is wrong')
             print(set(docs))
-            # 'tt1454029', 'tt0053198'
             return False
 
 # TODO: Run the class with needed parameters, then run check methods and finally report the results of check methods

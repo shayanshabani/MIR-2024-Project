@@ -80,6 +80,7 @@ class Metadata_index:
         path =  path + Indexes.DOCUMENTS.value + '_' + Index_types.METADATA.value + '_index.json'
         with open(path, 'w') as file:
             json.dump(self.metadata_index, file, indent=4)
+        print('metadata index stored successfully!')
 
 
     
