@@ -137,12 +137,9 @@ class SearchEngine:
         for field in weights:
             #TODO
             index = self.document_indexes[field].index
-            num_of_docs = set()
-            for term, doc_tf in index.items():
-                for doc, tf in index[term].items():
-                    num_of_docs.add(doc)
+            num_of_docs = self.metadata_index.index['document_count']
 
-            scorer = Scorer(index, len(num_of_docs))
+            scorer = Scorer(index, num_of_docs)
             if method == 'OkapiBM25':
                 document_length_index = self.document_lengths_index[field].index
                 average_length = self.metadata_index.index['average_document_length'][field.value]

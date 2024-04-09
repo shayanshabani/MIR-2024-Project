@@ -86,6 +86,5 @@ class Snippet:
         set
             A set containing the stopwords.
         """
-        with open('stopwords.txt', 'r') as f:
-            stopwords = set(f.read().split())
+        stopwords = ['this', 'that', 'about', 'whom', 'being', 'where', 'why', 'had', 'should', 'each']
         return stopwords

@@ -51,7 +51,11 @@ def search_handling(
     search_method,
 ):
     if search_button:
-        corrected_query = utils.correct_text(search_term, utils.movies_dataset)
+        all_documents = [" ".join(utils.movies_dataset[i]['summaries']) +
+                         " ".join(utils.movies_dataset[i]['genres']) +
+                         " ".join(utils.movies_dataset[i]['stars'])
+                         for i in utils.movies_dataset]
+        corrected_query = utils.correct_text(search_term, all_documents)
 
         if corrected_query != search_term:
             st.warning(f"Your search terms were corrected to: {corrected_query}")

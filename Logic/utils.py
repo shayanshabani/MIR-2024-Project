@@ -67,7 +67,11 @@ def search(
     list
     Retrieved documents with snippet
     """
-    weights = ...  # TODO
+    weights = {
+        Indexes.STARS: weights[0],
+        Indexes.GENRES: weights[1],
+        Indexes.SUMMARIES: weights[2],
+    }
     return search_engine.search(
         query, method, weights, max_results=max_result_count, safe_ranking=True
     )

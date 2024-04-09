@@ -122,8 +122,11 @@ class Scorer:
 
         documents = self.get_list_of_documents(query)
         for document in documents:
-            document_scores[document['id']] = self.get_vector_space_model_score(
-                query, query_tfs, document['id'], method[:3], method[4:]
+            print(method)
+            print(method[:3])
+            print(method[4:])
+            document_scores[document] = self.get_vector_space_model_score(
+                query, query_tfs, document, method[:3], method[4:]
             )
         return document_scores
 
