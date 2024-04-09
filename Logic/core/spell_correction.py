@@ -142,7 +142,7 @@ class SpellCorrection:
         str
             The best candidate word.
         """
-        word_shingles = self.all_shingled_words[word]
+        word_shingles = self.shingle_word(word)
         normalized_tf = {}
         max_tf = max(self.word_counter[candidate] for candidate in top5_candidates)
         for candidate in top5_candidates:
