@@ -273,7 +273,7 @@ class Scorer:
 
         Parameters
         ----------
-        query : str
+        query : List[str]
             The query to search for.
         smoothing_method : str (bayes | naive | mixture)
             The method used for smoothing the probabilities in the unigram model.
@@ -293,7 +293,13 @@ class Scorer:
         """
 
         # TODO
-        pass
+        documents = self.get_list_of_documents(query)
+        document_scores = {}
+        for document in documents:
+            document_scores[document['id']] = self.compute_score_with_unigram_model(
+                query, document['id'], smoothing_method, document_lengths, alpha, lamda
+            )
+        return document_scores
 
     def compute_score_with_unigram_model(
             self, query, document_id, smoothing_method, document_lengths, alpha, lamda
@@ -303,7 +309,7 @@ class Scorer:
 
         Parameters
         ----------
-        query : str
+        query : List[str]
             The query to search for.
         document_id : str
             The document to calculate the score for.
@@ -325,4 +331,34 @@ class Scorer:
         """
 
         # TODO
-        pass
+        score = 1
+        V = len(query)
+        for term in query:
+            if self.index[term][document_id] is None:
+                document_tf = 0
+            else:
+                document_tf = self.index[term][document_id]
+
+            document_length = document_lengths[document_id]
+
+            corpus_tf = 0
+            for document in self.index[term]:
+                corpus_tf += self.index[term][document]
+
+            corpus_length = 0
+            for document in document_lengths:
+                corpus_length += document_lengths[document]
+
+            doc_probability = document_tf / document_length
+            corpus_probability = corpus_tf / corpus_length
+
+            if smoothing_method == 'bayes':
+                term_score = (document_tf + alpha * corpus_probability) / (document_length + alpha)
+
+            elif smoothing_method == 'naive':
+                term_score = (document_tf + 1) / (document_length + V)
+            else:
+                term_score = lamda * doc_probability + (1 - lamda) * corpus_probability
+
+            score *= term_score
+        return score

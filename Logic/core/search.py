@@ -79,7 +79,9 @@ class SearchEngine:
                 query, smoothing_method, weights, scores, alpha, lamda
             )
         elif safe_ranking:
-            self.find_scores_with_safe_ranking(query, method, weights, scores)
+            self.find_scores_with_safe_ranking(
+                query, method, weights, scores
+            )
         else:
             self.find_scores_with_unsafe_ranking(
                 query, method, weights, max_results, scores
@@ -193,7 +195,13 @@ class SearchEngine:
             probability and the collection probability. Defaults to 0.5.
         """
         # TODO
-        pass
+        for field in weights:
+            index = self.document_indexes[field].index
+            num_of_docs = self.metadata_index.index['document_count']
+            document_length_index = self.document_lengths_index[field].index
+            scorer = Scorer(index, num_of_docs)
+            score = scorer.compute_scores_with_unigram_model(query, smoothing_method, document_length_index, alpha, lamda)
+
 
     def merge_scores(self, scores1, scores2):
         """
