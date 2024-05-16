@@ -1,5 +1,18 @@
 IMDB_crawled.json
 IMDB_crawled_1.json
+
+documents_index.json
+documents_metadata_index.json
+genres_document_length_index.json
+genres_index.json
+genres_tiered_index.json
+stars_document_length_index.json
+stars_index.json
+stars_tiered_index.json
+summaries_document_length_index.json
+summaries_index.json
+summaries_tiered_index.json
+
 # git ignore file for python projects
 # Byte-compiled / optimized / DLL files
 __pycache__/
