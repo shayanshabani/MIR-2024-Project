@@ -2,6 +2,7 @@ import numpy as np
 import itertools
 import random
 import json
+from Logic.core.utility.preprocess import Preprocessor
 
 class MinHashLSH:
     def __init__(self, documents, num_hashes):
@@ -241,9 +242,12 @@ for fake_movie in fake_movies:
         combined_summary += summary + ' '
     documents.append(combined_summary.strip())
 
-with open('../IMDB_crawled.json', 'r') as f:
+with open('../../IMDB_crawled.json', 'r') as f:
     json_data = f.read()
 crawled_movies = json.loads(json_data)
+preprocessor = Preprocessor(crawled_movies)
+prep_movies = preprocessor.preprocess()
+crawled_movies = prep_movies
 
 for crawled_movie in crawled_movies:
     if len(crawled_movie['summaries']) != 0:

@@ -32,11 +32,14 @@ class Preprocessor:
         preprocessed_documents = []
         for document in self.documents:
             for field in ['stars', 'genres', 'summaries']:
-                for i in range(len(document[field])):
-                    document[field][i] = self.remove_links(document[field][i])
-                    document[field][i] = self.remove_punctuations(document[field][i])
-                    document[field][i] = self.normalize(document[field][i])
-                    document[field][i] = self.remove_stopwords(document[field][i])
+                if document[field] is not None:
+                    for i in range(len(document[field])):
+                        document[field][i] = self.remove_links(document[field][i])
+                        document[field][i] = self.remove_punctuations(document[field][i])
+                        document[field][i] = self.normalize(document[field][i])
+                        document[field][i] = self.remove_stopwords(document[field][i])
+                else:
+                    document[field] = []
             preprocessed_documents.append(document)
         return preprocessed_documents
 
