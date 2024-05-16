@@ -3,7 +3,7 @@ import os
 import json
 import copy
 from indexes_enum import Indexes
-from Logic.core.preprocess import Preprocessor
+from Logic.core.utility.preprocess import Preprocessor
 
 class Index:
     def __init__(self, preprocessed_documents: list):

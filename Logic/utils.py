@@ -1,7 +1,7 @@
 from typing import Dict, List
 from Logic.core.search import SearchEngine
-from Logic.core.spell_correction import SpellCorrection
-from Logic.core.snippet import Snippet
+from Logic.core.utility.spell_correction import SpellCorrection
+from Logic.core.utility.snippet import Snippet
 from Logic.core.indexer.indexes_enum import Indexes, Index_types
 from Logic.core.indexer.index_reader import Index_reader
 import json
