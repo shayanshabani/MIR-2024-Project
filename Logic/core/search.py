@@ -195,12 +195,15 @@ class SearchEngine:
             probability and the collection probability. Defaults to 0.5.
         """
         # TODO
+
         for field in weights:
             index = self.document_indexes[field].index
             num_of_docs = self.metadata_index.index['document_count']
             document_length_index = self.document_lengths_index[field].index
             scorer = Scorer(index, num_of_docs)
             score = scorer.compute_scores_with_unigram_model(query, smoothing_method, document_length_index, alpha, lamda)
+            scores[field.value] = score
+        return scores
 
 
     def merge_scores(self, scores1, scores2):

@@ -8,20 +8,20 @@ class LinkGraph:
     """
     def __init__(self):
         #TODO
-        pass
+        self.graph = nx.DiGraph()
 
     def add_edge(self, u_of_edge, v_of_edge):
         #TODO
-        pass
+        self.graph.add_edge(u_of_edge, v_of_edge)
 
     def add_node(self, node_to_add):
         #TODO
-        pass
+        self.graph.add_node(node_to_add)
 
     def get_successors(self, node):
         #TODO
-        pass
+        return list(self.get_successors(node))
 
     def get_predecessors(self, node):
         #TODO
-        pass
+        return list(self.get_predecessors(node))
