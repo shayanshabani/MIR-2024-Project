@@ -1,5 +1,5 @@
-from .indexes_enum import Indexes, Index_types
-from .index_reader import Index_reader
+from Logic.core.indexer.indexes_enum import Indexes, Index_types
+from Logic.core.indexer.index_reader import Index_reader
 import json
 
 
@@ -47,7 +47,7 @@ class Tiered_index:
         Returns
         -------
         dict
-            The tiered index with structure of 
+            The tiered index with structure of
             {
                 "first_tier": dict,
                 "second_tier": dict,
@@ -62,6 +62,20 @@ class Tiered_index:
         second_tier = {}
         third_tier = {}
         #TODO
+        for term, doc_tf in current_index.items():
+            for doc, tf in current_index[term].items():
+                if tf >= first_tier_threshold:
+                    if term not in first_tier:
+                        first_tier[term] = {}
+                    first_tier[term][doc] = tf
+                elif tf >= second_tier_threshold:
+                    if term not in second_tier:
+                        second_tier[term] = {}
+                    second_tier[term][doc] = tf
+                else:
+                    if term not in third_tier:
+                        third_tier[term] = {}
+                    third_tier[term][doc] = tf
         return {
             "first_tier": first_tier,
             "second_tier": second_tier,
@@ -75,6 +89,7 @@ class Tiered_index:
         path = path + index_name.value + "_" + Index_types.TIERED.value + "_index.json"
         with open(path, "w") as file:
             json.dump(self.tiered_index[index_name], file, indent=4)
+        print(f'tiered index for {index_name.value} stored successfully!')
 
 
 if __name__ == "__main__":
