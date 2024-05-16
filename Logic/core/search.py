@@ -70,8 +70,8 @@ class SearchEngine:
         list
             A list of tuples containing the document IDs and their scores sorted by their scores.
         """
-        preprocessor = Preprocessor([query])
-        query = preprocessor.preprocess()[0]
+        preprocessor = Preprocessor([])
+        query = preprocessor.preprocess_query([query])[0].split()
 
         scores = {}
         if method == "unigram":
@@ -95,48 +95,6 @@ class SearchEngine:
 
         return result
 
-    def search(self, query, method, weights, safe_ranking=True, max_results=10):
-        """
-        searches for the query in the indexes.
-
-        Parameters
-        ----------
-        query : str
-            The query to search for.
-        method : str ((n|l)(n|t)(n|c).(n|l)(n|t)(n|c)) | OkapiBM25
-            The method to use for searching.
-        weights: dict
-            The weights of the fields.
-        safe_ranking : bool
-            If True, the search engine will search in whole index and then rank the results.
-            If False, the search engine will search in tiered index.
-        max_results : int
-            The maximum number of results to return. If None, all results are returned.
-
-        Returns
-        -------
-        list
-            A list of tuples containing the document IDs and their scores sorted by their scores.
-        """
-
-        preprocessor = Preprocessor([])
-        query = preprocessor.preprocess_query([query])[0].split()
-
-        scores = {}
-        if safe_ranking:
-            scores = self.find_scores_with_safe_ranking(query, method, weights, scores)
-        else:
-            self.find_scores_with_unsafe_ranking(query, method, weights, max_results, scores)
-
-        final_scores = {}
-
-        self.aggregate_scores(weights, scores, final_scores)
-
-        result = sorted(final_scores.items(), key=lambda x: x[1], reverse=True)
-        if max_results is not None:
-            result = result[:max_results]
-
-        return result
 
     def aggregate_scores(self, weights, scores, final_scores):
         """
