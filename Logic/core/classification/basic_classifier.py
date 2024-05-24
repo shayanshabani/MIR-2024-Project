@@ -1,21 +1,25 @@
 import numpy as np
 from tqdm import tqdm
 
-from ..word_embedding.fasttext_model import FastText
-
+from Logic.core.word_embedding.fasttext_model import FastText
+from sklearn.metrics import classification_report
 
 class BasicClassifier:
-    def __init__(self):
-        raise NotImplementedError()
+    def __init__(self, model):
+        self.model = model
+        self.fasttext = FastText()
 
     def fit(self, x, y):
-        raise NotImplementedError()
+        embeddings = [self.fasttext.get_sentence_vector(sentence) for sentence in tqdm(x, desc="Generating embeddings")]
+        self.model.fit(embeddings, y)
 
     def predict(self, x):
-        raise NotImplementedError()
+        embeddings = [self.fasttext.get_sentence_vector(sentence) for sentence in tqdm(x, desc="Generating embeddings")]
+        return self.model.predict(embeddings)
 
     def prediction_report(self, x, y):
-        raise NotImplementedError()
+        predictions = self.predict(x)
+        print(classification_report(y, predictions))
 
     def get_percent_of_positive_reviews(self, sentences):
         """
@@ -29,5 +33,7 @@ class BasicClassifier:
         float
             The percentage of positive reviews
         """
-        pass
+        predictions = self.predict(sentences)
+        positive_count = np.sum(predictions)
+        return (positive_count / len(predictions)) * 100
 
