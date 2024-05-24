@@ -31,7 +31,24 @@ def preprocess_text(text, minimum_length=1, stopword_removal=True, stopwords_dom
     punctuation_removal: bool
         whether to remove punctuations
     """
-    pass
+    if punctuation_removal:
+        text = re.sub(r'[^\w\s]', ' ', text)
+
+    words = text.split()
+
+    minimum_tokens = [word for word in words if len(word) >= minimum_length]
+    text = ' '.join(minimum_tokens)
+
+    if stopword_removal:
+        stop_words = set(stopwords.words('english') + stopwords_domain)
+        filtered_words = [word for word in words if word not in stop_words]
+        text = ' '.join(filtered_words)
+
+    if lower_case:
+        text = text.lower()
+
+    return text
+
 
 class FastText:
     """
@@ -67,7 +84,11 @@ class FastText:
         texts : list of str
             The texts to train the FastText model.
         """
-        pass
+        with open('train.txt', 'w') as f:
+            for text in texts:
+                f.write(text + '\n')
+        self.model = fasttext.train_unsupervised('train.txt', model=self.method)
+
 
     def get_query_embedding(self, query):
         """
@@ -87,7 +108,7 @@ class FastText:
         np.ndarray
             The embedding for the query.
         """
-        pass
+        return self.model.get_word_vector(query)
 
     def analogy(self, word1, word2, word3):
         """
@@ -115,7 +136,7 @@ class FastText:
 
         # Find the word whose vector is closest to the result vector
         # TODO
-        pass
+        return str(self.model.get_analogies(word1, word2, word3)[0][1])
 
     def save_model(self, path='FastText_model.bin'):
         """
@@ -126,7 +147,7 @@ class FastText:
         path : str, optional
             The path to save the FastText model.
         """
-        pass
+        self.model.save_model(path)
 
     def load_model(self, path="FastText_model.bin"):
         """
@@ -137,7 +158,7 @@ class FastText:
         path : str, optional
             The path to load the FastText model.
         """
-        pass
+        self.model = fasttext.load_model(path)
 
     def prepare(self, dataset, mode, save=False, path='FastText_model.bin'):
         """
