@@ -38,12 +38,13 @@ class LinkAnalyzer:
                 if star not in self.authorities:
                     self.authorities.append(star)
                     self.graph.add_node(star)
+                    self.graph.add_edge(movie['id'], star)
 
             if movie['id'] not in self.hubs:
                 self.hubs.append(movie['id'])
                 self.graph.add_node(movie['id'])
 
-            self.graph.add_edge(movie['id'], movie['stars'])
+
 
 
     def expand_graph(self, corpus):
@@ -70,7 +71,7 @@ class LinkAnalyzer:
             if movie['id'] not in self.hubs:
                 stars = movie['stars']
                 for star in stars:
-                    if star in self.authorities:
+                    if star not in self.authorities:
                         if movie['id'] not in added_movies:
                             added_movies.append(movie['id'])
                             self.graph.add_node(movie['id'])
@@ -98,10 +99,29 @@ class LinkAnalyzer:
         list
             List of names of 10 movies with the most scores obtained by Hits algorithm in descending order
         """
-        a_s = []
-        h_s = []
 
         #TODO
+
+        auth_scores = {node: 1.0 for node in self.authorities}
+        hub_scores = {node: 1.0 for node in self.hubs}
+
+        for _ in range(num_iteration):
+            for node in self.authorities:
+                auth_scores[node] = sum(hub_scores[hub] for hub in self.graph.get_predecessors(node))
+
+            for node in self.hubs:
+                hub_scores[node] = sum(auth_scores[auth] for auth in self.graph.get_successors(node))
+
+            auth_norm = sum(auth_scores.values())
+            hub_norm = sum(hub_scores.values())
+
+            for node in self.authorities:
+                auth_scores[node] /= auth_norm
+            for node in self.hubs:
+                hub_scores[node] /= hub_norm
+
+        a_s = sorted(auth_scores.items(), key=lambda item: item[1], reverse=True)[:max_result]
+        h_s = sorted(hub_scores.items(), key=lambda item: item[1], reverse=True)[:max_result]
 
         return a_s, h_s
 
