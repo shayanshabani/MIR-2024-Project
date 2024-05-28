@@ -4,7 +4,7 @@ import tqdm
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 
-from ..word_embedding.fasttext_model import FastText
+from Logic.core.word_embedding.fasttext_model import FastText
 
 
 class ReviewLoader:
@@ -20,13 +20,27 @@ class ReviewLoader:
         Load the data from the csv file and preprocess the text. Then save the normalized tokens and the sentiment labels.
         Also, load the fasttext model.
         """
-        pass
+        self.fasttext_model = FastText()
+        self.fasttext_model.prepare(None, mode="load")
+
+        data_frame = pd.read_csv(self.file_path)
+
+        label_encoder = LabelEncoder()
+        data_frame['sentiment'] = label_encoder.fit_transform(data_frame['sentiment'])
+
+        self.review_tokens = data_frame['review'].to_numpy()
+        self.sentiments = data_frame['sentiment'].to_numpy()
 
     def get_embeddings(self):
         """
         Get the embeddings for the reviews using the fasttext model.
         """
-        pass
+        embeddings_list = []
+        for token in tqdm.tqdm(self.review_tokens):
+            embedding = self.fasttext_model.get_query_embedding(token)
+            embeddings_list.append(embedding)
+
+        self.embeddings = np.array(embeddings_list)
 
     def split_data(self, test_data_ratio=0.2):
         """
@@ -42,4 +56,5 @@ class ReviewLoader:
             Return the training and testing data for the embeddings and the sentiments.
             in the order of x_train, x_test, y_train, y_test
         """
-        pass
+        x_train, x_test, y_train, y_test = train_test_split(self.embeddings, self.sentiments, test_size=test_data_ratio, random_state=42)
+        return x_train, x_test, y_train, y_test
