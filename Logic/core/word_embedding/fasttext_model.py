@@ -183,11 +183,14 @@ class FastText:
 if __name__ == "__main__":
 
     ft_model = FastText(method='skipgram')
-    path = 'data/'
-    ft_data_loader = FastTextDataLoader(path)
-    X, y = ft_data_loader.create_train_data()
-    ft_model.train(X)
-    ft_model.prepare(None, mode="save", save=True)
+
+    # path = 'data/'
+    # ft_data_loader = FastTextDataLoader(path)
+    # X, y = ft_data_loader.create_train_data()
+    # ft_model.train(X)
+    # ft_model.prepare(None, mode="save", save=True)
+
+    ft_model.prepare(None, mode='load')
 
     print(10 * "*" + "Similarity" + 10 * "*")
     word = 'queen'
