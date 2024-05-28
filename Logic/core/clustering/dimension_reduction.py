@@ -1,3 +1,8 @@
+import matplotlib
+import numpy as np
+matplotlib.use('TkAgg')
+import matplotlib.pyplot as plt
+import wandb
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 
@@ -21,7 +26,8 @@ class DimensionReduction:
         -------
             list: A list of reduced embeddings.
         """
-        pass
+        self.pca = PCA(n_components=n_components)
+        return self.pca.fit_transform(embeddings)
 
     def convert_to_2d_tsne(self, emb_vecs):
         """
@@ -35,7 +41,7 @@ class DimensionReduction:
         --------
             list: A list of 2D vectors.
         """
-        pass
+        return self.tsne_2d.fit_transform(emb_vecs)
 
     def wandb_plot_2d_tsne(self, data, project_name, run_name):
         """ This function performs t-SNE (t-Distributed Stochastic Neighbor Embedding) dimensionality reduction on the input data and visualizes the resulting 2D embeddings by logging a scatter plot to Weights & Biases (wandb).
@@ -68,9 +74,12 @@ class DimensionReduction:
 
         # Perform t-SNE dimensionality reduction
         # TODO
+        tsne = self.convert_to_2d_tsne(data)
 
         # Plot the t-SNE embeddings
         # TODO
+        plt.scatter(tsne[:, 0], tsne[:, 1], c='b', marker='o', edgecolor='k')
+        plt.show()
 
         # Log the plot to wandb
         wandb.log({"t-SNE 2D Embeddings": wandb.Image(plt)})
@@ -109,9 +118,17 @@ class DimensionReduction:
 
         # Fit PCA and compute cumulative explained variance ratio
         # TODO
+        self.pca.fit(data)
+        explained_variance = self.pca.explained_variance_ratio_
+        cum_explained_variance = np.cumsum(explained_variance)
 
         # Create the plot
         # TODO
+        plt.plot(cum_explained_variance)
+        plt.xlabel('Number of Components')
+        plt.ylabel('Cumulative Explained Variance Ratio')
+        plt.title('Cumulative Explained Variance Ratio by Components')
+        plt.show()
 
         # Initialize wandb
         run = wandb.init(project=project_name, name=run_name)
