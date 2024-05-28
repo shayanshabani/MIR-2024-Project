@@ -1,6 +1,9 @@
 IMDB_crawled.json
 IMDB_crawled_1.json
 
+train_data.csv
+FastText_model.bin
+
 documents_index.json
 documents_metadata_index.json
 genres_document_length_index.json

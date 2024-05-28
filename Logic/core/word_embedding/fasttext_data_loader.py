@@ -7,7 +7,7 @@ from tqdm import tqdm
 import re
 
 from nltk.corpus import stopwords
-nltk.download('stopwords')
+# nltk.download('stopwords')
 from sklearn.preprocessing import LabelEncoder
 
 

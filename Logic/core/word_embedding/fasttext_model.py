@@ -1,12 +1,13 @@
 import fasttext
 import re
 
+import pandas as pd
 from tqdm import tqdm
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from scipy.spatial import distance
 
-from .fasttext_data_loader import FastTextDataLoader
+from Logic.core.word_embedding.fasttext_data_loader import FastTextDataLoader
 
 
 def preprocess_text(text, minimum_length=1, stopword_removal=True, stopwords_domain=[], lower_case=True,
@@ -84,10 +85,11 @@ class FastText:
         texts : list of str
             The texts to train the FastText model.
         """
-        with open('train.txt', 'w') as f:
-            for text in texts:
-                f.write(text + '\n')
-        self.model = fasttext.train_unsupervised('train.txt', model=self.method)
+
+        train_data = pd.DataFrame(texts)
+        path = 'data/train_data.csv'
+        train_data.to_csv(path, index=False, header=False)
+        self.model = fasttext.FastText.train_unsupervised(input=path, model=self.method)
 
 
     def get_query_embedding(self, query):
@@ -138,7 +140,7 @@ class FastText:
         # TODO
         return str(self.model.get_analogies(word1, word2, word3)[0][1])
 
-    def save_model(self, path='FastText_model.bin'):
+    def save_model(self, path='data/FastText_model.bin'):
         """
         Saves the FastText model to a file.
 
@@ -149,7 +151,7 @@ class FastText:
         """
         self.model.save_model(path)
 
-    def load_model(self, path="FastText_model.bin"):
+    def load_model(self, path="data/FastText_model.bin"):
         """
         Loads the FastText model from a file.
 
@@ -160,7 +162,7 @@ class FastText:
         """
         self.model = fasttext.load_model(path)
 
-    def prepare(self, dataset, mode, save=False, path='FastText_model.bin'):
+    def prepare(self, dataset, mode, save=False, path='data/FastText_model.bin'):
         """
         Prepares the FastText model.
 
@@ -179,15 +181,13 @@ class FastText:
             self.save_model(path)
 
 if __name__ == "__main__":
-    ft_model = FastText(preprocessor=preprocess_text, method='skipgram')
 
-    path = './Phase_1/index/'
-    ft_data_loader = FastTextDataLoader()
-
-    X = ft_data_loader.create_train_data(path)
-
+    ft_model = FastText(method='skipgram')
+    path = 'data/'
+    ft_data_loader = FastTextDataLoader(path)
+    X, y = ft_data_loader.create_train_data()
     ft_model.train(X)
-    ft_model.prepare(None, mode = "save")
+    ft_model.prepare(None, mode="save", save=True)
 
     print(10 * "*" + "Similarity" + 10 * "*")
     word = 'queen'
