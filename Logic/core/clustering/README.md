@@ -25,3 +25,7 @@ This folder contains Python classes for clustering and analyzing your data. You 
 - This is the main function where you need to call all the functions from the previously mentioned classes to evaluate how well you can cluster (by examining the metrics and visualizations).
 - Ensure that the implemented functions work correctly by calling them in the main class.
 - Some functions are already called in the given main class, but make sure to call the rest with different values for ranges, linkage methods, etc., in the main class as well.
+
+### 5. results:
+- view run at : https://wandb.ai/shayanshabani/IMDb-IR/runs/h5da1h4k
+- view project at : https://wandb.ai/shayanshabani/IMDb-IR
