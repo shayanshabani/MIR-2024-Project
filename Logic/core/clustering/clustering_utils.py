@@ -40,7 +40,7 @@ class ClusteringUtils:
             for j in range(len(emb_vecs)):
                 distance = 0
                 for index in indices:
-                    distance += np.linalg.norm(emb_vecs[j], emb_vecs[index])
+                    distance += np.linalg.norm(emb_vecs[j] - emb_vecs[index])
                 distance /= len(indices)
                 distances.append(distance)
             indices.append(np.argmax(distances))

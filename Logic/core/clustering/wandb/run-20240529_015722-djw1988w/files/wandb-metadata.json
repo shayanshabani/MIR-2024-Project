@@ -1,0 +1,45 @@
+{
+    "os": "Windows-10-10.0.19045-SP0",
+    "python": "3.10.6",
+    "heartbeatAt": "2024-05-28T22:27:26.001290",
+    "startedAt": "2024-05-28T22:27:22.767900",
+    "docker": null,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "D:\\Term 6\\Modern Information Retrieval\\Project\\Phase2\\MIR-2024-Project\\Logic\\core\\clustering\\main.py",
+    "codePathLocal": "main.py",
+    "codePath": "Logic\\core\\clustering\\main.py",
+    "git": {
+        "remote": "git@github.com:shayanshabani/MIR-2024-Project.git",
+        "commit": "4740db5aaea67ec4a6bb17b0a3607ddf2036c8c4"
+    },
+    "email": "shayan.shabani5814@gmail.com",
+    "root": "D:/Term 6/Modern Information Retrieval/Project/Phase2/MIR-2024-Project",
+    "host": "shayan",
+    "username": "KASRA",
+    "executable": "C:\\Users\\KASRA\\AppData\\Local\\Programs\\Python\\Python310\\python.exe",
+    "cpu_count": 4,
+    "cpu_count_logical": 8,
+    "cpu_freq": {
+        "current": 1298.0,
+        "min": 0.0,
+        "max": 1498.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 1298.0,
+            "min": 0.0,
+            "max": 1498.0
+        }
+    ],
+    "disk": {
+        "/": {
+            "total": 94.66796493530273,
+            "used": 75.8954963684082
+        }
+    },
+    "memory": {
+        "total": 15.69503402709961
+    }
+}
