@@ -110,6 +110,7 @@ class FastText:
         np.ndarray
             The embedding for the query.
         """
+        query = preprocess_text(query)
         return self.model.get_word_vector(query)
 
     def analogy(self, word1, word2, word3):
@@ -126,19 +127,31 @@ class FastText:
         """
         # Obtain word embeddings for the words in the analogy
         # TODO
+        first_embedding = self.get_query_embedding(word1)
+        second_embedding = self.get_query_embedding(word2)
+        third_embedding = self.get_query_embedding(word3)
 
         # Perform vector arithmetic
         # TODO
+        fourth_embedding = second_embedding - first_embedding + third_embedding
 
         # Create a dictionary mapping each word in the vocabulary to its corresponding vector
         # TODO
+        words = self.model.get_words(include_freq=False)
+        mapping = dict([(word, self.model.get_word_vector(word)) for word in words])
 
         # Exclude the input words from the possible results
         # TODO
+        mapping.pop(word1)
+        mapping.pop(word2)
+        mapping.pop(word3)
 
         # Find the word whose vector is closest to the result vector
         # TODO
-        return str(self.model.get_analogies(word1, word2, word3)[0][1])
+        distances = map(lambda item: (item[0], distance.cosine(fourth_embedding, item[1])), mapping.items())
+        result, min_distance = min(distances, key=lambda item: item[1], default=(None, float('inf')))
+        #return str(self.model.get_analogies(word1, word2, word3)[0][1])
+        return result
 
     def save_model(self, path='data/FastText_model.bin'):
         """
@@ -202,5 +215,5 @@ if __name__ == "__main__":
     print(10 * "*" + "Analogy" + 10 * "*")
     word1 = "man"
     word2 = "king"
-    word3 = "queen"
+    word3 = "woman"
     print(f"Similarity between {word1} and {word2} is like similarity between {word3} and {ft_model.analogy(word1, word2, word3)}")
