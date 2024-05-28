@@ -5,21 +5,25 @@ from Logic.core.word_embedding.fasttext_model import FastText
 from sklearn.metrics import classification_report
 
 class BasicClassifier:
-    def __init__(self, model):
-        self.model = model
-        self.fasttext = FastText()
+    def __init__(self):
+        # self.model = model
+        # self.fasttext = FastText()
+        pass
 
     def fit(self, x, y):
-        embeddings = [self.fasttext.get_sentence_vector(sentence) for sentence in tqdm(x, desc="Generating embeddings")]
-        self.model.fit(embeddings, y)
+        # embeddings = [self.fasttext.get_sentence_vector(sentence) for sentence in tqdm(x, desc="Generating embeddings")]
+        # self.model.fit(embeddings, y)
+        pass
 
     def predict(self, x):
-        embeddings = [self.fasttext.get_sentence_vector(sentence) for sentence in tqdm(x, desc="Generating embeddings")]
-        return self.model.predict(embeddings)
+        # embeddings = [self.fasttext.get_sentence_vector(sentence) for sentence in tqdm(x, desc="Generating embeddings")]
+        # return self.model.predict(embeddings)
+        pass
 
     def prediction_report(self, x, y):
-        predictions = self.predict(x)
-        print(classification_report(y, predictions))
+        # predictions = self.predict(x)
+        # print(classification_report(y, predictions))
+        pass
 
     def get_percent_of_positive_reviews(self, sentences):
         """
@@ -33,7 +37,8 @@ class BasicClassifier:
         float
             The percentage of positive reviews
         """
-        predictions = self.predict(sentences)
-        positive_count = np.sum(predictions)
-        return (positive_count / len(predictions)) * 100
+        # predictions = self.predict(sentences)
+        # positive_count = np.sum(predictions)
+        # return (positive_count / len(predictions)) * 100
+        pass
 
