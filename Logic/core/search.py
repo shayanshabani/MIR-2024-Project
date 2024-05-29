@@ -71,8 +71,8 @@ class SearchEngine:
             A list of tuples containing the document IDs and their scores sorted by their scores.
         """
         preprocessor = Preprocessor([])
-        query = preprocessor.preprocess_query([query])[0].split()
-
+        query = preprocessor.preprocess_query(query)
+        query = query.split()
         scores = {}
         if method == "unigram":
             self.find_scores_with_unigram_model(
@@ -92,6 +92,8 @@ class SearchEngine:
         self.aggregate_scores(weights, scores, final_scores)
 
         result = sorted(final_scores.items(), key=lambda x: x[1], reverse=True)
+        print(result)
+        print(max_results)
         if max_results is not None:
             result = result[:max_results]
 

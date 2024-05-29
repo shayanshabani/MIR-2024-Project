@@ -82,7 +82,7 @@ class Preprocessor:
         # TODO
         patterns = ['https', 'http', 'www', '.ir', '.com', '.org', '@']
         for pattern in patterns:
-            text = text.replace(pattern, ' ')
+            text = text.replace(pattern, '')
         return text
 
     def remove_punctuations(self, text: str):
@@ -100,7 +100,7 @@ class Preprocessor:
             The text with punctuations removed.
         """
         # TODO
-        text = re.sub(r'[^\w\s]', ' ', text)
+        text = re.sub(r'[^\w\s]', '', text)
         return text
 
     def tokenize(self, text: str):
@@ -154,12 +154,9 @@ class Preprocessor:
             stopwords = set(f.read().split())
         return stopwords
 
-    def preprocess_query(self, documents):
-        preprocessed_documents = []
-        for document in documents:
-            document = self.normalize(document)
-            document = self.remove_links(document)
-            document = self.remove_punctuations(document)
-            document = self.remove_stopwords(document)
-            preprocessed_documents.append(document)
-        return preprocessed_documents
+    def preprocess_query(self, query):
+        query = self.normalize(query)
+        query = self.remove_links(query)
+        query = self.remove_punctuations(query)
+        query = self.remove_stopwords(query)
+        return query

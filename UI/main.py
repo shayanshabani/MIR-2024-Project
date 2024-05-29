@@ -1,6 +1,6 @@
 import streamlit as st
 import sys
-
+import re
 sys.path.append("../")
 from Logic import utils
 import time
@@ -51,13 +51,12 @@ def get_summary_with_snippet(movie_info, query):
     if "***" in snippet:
         snippet = snippet.split()
         for i in range(len(snippet)):
-            current_word = snippet[i]
+            current_word = snippet[i].lower()
             if current_word.startswith("***") and current_word.endswith("***"):
                 current_word_without_star = current_word[3:-3]
-                summary = summary.lower().replace(
-                    current_word_without_star,
-                    f"<b><font size='4' color={random.choice(list(color)).value}>{current_word_without_star}</font></b>",
-                )
+                pattern = r'\b(?:' + re.escape(current_word_without_star) + r')\b'
+                summary = re.sub(pattern,  f"<b><font size='4' color={random.choice(list(color)).value}>{current_word_without_star}</font></b>", summary.lower())
+
     return summary
 
 
@@ -66,16 +65,16 @@ def search_time(start, end):
 
 
 def search_handling(
-    search_button,
-    search_term,
-    search_max_num,
-    search_weights,
-    search_method,
-    unigram_smoothing,
-    alpha,
-    lamda,
-    filter_button,
-    num_filter_results,
+        search_button,
+        search_term,
+        search_max_num,
+        search_weights,
+        search_method,
+        unigram_smoothing,
+        alpha,
+        lamda,
+        filter_button,
+        num_filter_results,
 ):
     if filter_button:
         if "search_results" in st.session_state:
@@ -135,7 +134,7 @@ def search_handling(
                          " ".join(utils.movies_dataset[i]['stars'])
                          for i in utils.movies_dataset]
         corrected_query = utils.correct_text(search_term, all_documents)
-
+        print(corrected_query)
         if corrected_query != search_term:
             st.warning(f"Your search terms were corrected to: {corrected_query}")
             search_term = corrected_query
@@ -148,7 +147,7 @@ def search_handling(
                 search_max_num,
                 search_method,
                 search_weights,
-                unigram_smoothing=unigram_smoothing,
+                smoothing_method=unigram_smoothing,
                 alpha=alpha,
                 lamda=lamda,
             )
@@ -173,28 +172,28 @@ def search_handling(
                     f"<b><font size = '4'>Summary:</font></b> {get_summary_with_snippet(info, search_term)}",
                     unsafe_allow_html=True,
                 )
+            if info["directors"]:
+                with st.container():
+                    st.markdown("**Directors:**")
+                    num_authors = len(info["directors"])
+                    for j in range(num_authors):
+                        st.text(info["directors"][j])
+            if info["stars"]:
+                with st.container():
+                    st.markdown("**Stars:**")
+                    num_authors = len(info["stars"])
+                    stars = "".join(star + ", " for star in info["stars"])
+                    st.text(stars[:-2])
 
-            with st.container():
-                st.markdown("**Directors:**")
-                num_authors = len(info["directors"])
-                for j in range(num_authors):
-                    st.text(info["directors"][j])
-
-            with st.container():
-                st.markdown("**Stars:**")
-                num_authors = len(info["stars"])
-                stars = "".join(star + ", " for star in info["stars"])
-                st.text(stars[:-2])
-
-                topic_card = st.columns(1)
-                with topic_card[0].container():
-                    st.write("Genres:")
-                    num_topics = len(info["genres"])
-                    for j in range(num_topics):
-                        st.markdown(
-                            f"<span style='color:{random.choice(list(color)).value}'>{info['genres'][j]}</span>",
-                            unsafe_allow_html=True,
-                        )
+                    topic_card = st.columns(1)
+                    with topic_card[0].container():
+                        st.write("Genres:")
+                        num_topics = len(info["genres"])
+                        for j in range(num_topics):
+                            st.markdown(
+                                f"<span style='color:{random.choice(list(color)).value}'>{info['genres'][j]}</span>",
+                                unsafe_allow_html=True,
+                            )
             with card[1].container():
                 st.image(info["Image_URL"], use_column_width=True)
 
@@ -203,8 +202,8 @@ def search_handling(
         st.session_state["search_results"] = result
         if "filter_state" in st.session_state:
             st.session_state["filter_state"] = (
-                "search_results" in st.session_state
-                and len(st.session_state["search_results"]) > 0
+                    "search_results" in st.session_state
+                    and len(st.session_state["search_results"]) > 0
             )
 
 

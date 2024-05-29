@@ -107,6 +107,8 @@ class Index:
         summary_index = {}
         #         TODO
         for document in self.preprocessed_documents:
+            if document['id'] == 'tt0316654':
+                print('fuckkkkkkkkkkkkkkkkk')
             term_freq = {}
             for summary in document['summaries']:
                 summary_tokens = summary.split()
@@ -338,9 +340,6 @@ class Index:
         index_name: str
             name of index we want to store (documents, stars, genres, summaries)
         """
-
-        if not os.path.exists(path):
-            os.makedirs(path)
 
         if index_name not in self.index:
             raise ValueError('Invalid index name')

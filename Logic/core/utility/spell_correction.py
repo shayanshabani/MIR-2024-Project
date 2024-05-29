@@ -171,6 +171,7 @@ class SpellCorrection:
 
         # TODO: Do spell correction here.
         words = query.split()
+        print(words)
         for word in words:
             if word in self.word_counter:
                 final_result += word + ' '
@@ -179,4 +180,5 @@ class SpellCorrection:
                 best_candidate = self.count_embedding(top5_candidates, word)
                 final_result += best_candidate + ' '
         final_result = final_result.strip()
+        print(final_result)
         return final_result

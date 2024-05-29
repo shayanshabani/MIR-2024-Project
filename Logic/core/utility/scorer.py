@@ -167,6 +167,8 @@ class Scorer:
             if query_method[1] == 't':
                 query_document_frequency = self.get_idf(term)
             # compute weight for doc
+            print(term)
+            print(document_id)
             doc_term_frequency = self.index[term][document_id]
             if document_method[0] == 'l':
                 doc_term_frequency = 1 + np.log10(doc_term_frequency)
