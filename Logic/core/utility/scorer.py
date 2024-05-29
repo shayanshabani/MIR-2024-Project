@@ -298,8 +298,9 @@ class Scorer:
         documents = self.get_list_of_documents(query)
         document_scores = {}
         for document in documents:
-            document_scores[document['id']] = self.compute_score_with_unigram_model(
-                query, document['id'], smoothing_method, document_lengths, alpha, lamda
+            print(document)
+            document_scores[document] = self.compute_score_with_unigram_model(
+                query, document, smoothing_method, document_lengths, alpha, lamda
             )
         return document_scores
 

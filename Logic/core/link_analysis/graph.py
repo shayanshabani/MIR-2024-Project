@@ -20,8 +20,8 @@ class LinkGraph:
 
     def get_successors(self, node):
         #TODO
-        return list(self.get_successors(node))
+        return list(self.graph.successors(node))
 
     def get_predecessors(self, node):
         #TODO
-        return list(self.get_predecessors(node))
+        return list(self.graph.predecessors(node))
