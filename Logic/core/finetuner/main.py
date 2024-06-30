@@ -1,5 +1,10 @@
+from Logic.core.finetuner.BertFinetuner_mask import BERTFinetuner
+from huggingface_hub import login, logout
+
+login("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")
+
 # Instantiate the class
-bert_finetuner = BERTFinetuner('path/to/your/file.json', top_n_genres=5)
+bert_finetuner = BERTFinetuner('IMDB_crawled.json', top_n_genres=5)
 
 # Load the dataset
 bert_finetuner.load_dataset()
